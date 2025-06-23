@@ -7,9 +7,10 @@ const Navbar = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Generator' },
+    { path: '/generator', label: 'Generator' },
     { path: '/analyzer', label: 'Analyzer' },
     { path: '/job-match', label: 'Job Match' },
+    { path: '/cold-email', label: 'Cold Email' },
     { path: '/export', label: 'Export' },
     { path: '/chat', label: 'AI Chat' }
   ];

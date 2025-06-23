@@ -1,113 +1,45 @@
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ResumeData } from '../types/resumeTypes';
 
-const API_KEY = 'AIzaSyAHI6dEYABoLBXht70PtS97_fPFruDipH8';
+const genAI = new GoogleGenerativeAI('AIzaSyAHI6dEYABoLBXht70PtS97_fPFruDipH8');
 
-const genAI = new GoogleGenerativeAI(API_KEY);
-
-export interface AnalysisResult {
-  atsScore: number;
-  missingKeywords: string[];
-  formatSuggestions: string[];
-  improvements: string[];
-  matchingJobRoles: string[];
-}
-
-export const generateResume = async (data: ResumeData): Promise<string> => {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-  const prompt = `Generate a professional, ATS-optimized resume for the following candidate in markdown format:
-
-Name: ${data.fullName}
-Contact: ${data.email}, ${data.phone}${data.linkedin ? `, LinkedIn: ${data.linkedin}` : ''}${data.github ? `, GitHub: ${data.github}` : ''}${data.portfolio ? `, Portfolio: ${data.portfolio}` : ''}
-Target Job Role: ${data.jobRole}
-${data.summary ? `Summary: ${data.summary}` : ''}
-Skills: ${data.skills.join(', ')}
-Education: ${data.education.map(edu => `${edu.degree} from ${edu.institution} (${edu.year})${edu.gpa ? ` - GPA: ${edu.gpa}` : ''}`).join('; ')}
-Work Experience: ${data.experience.map(exp => `${exp.role} at ${exp.company} (${exp.duration}) - ${exp.description}`).join('; ')}
-Certifications: ${data.certifications.join(', ')}
-Projects: ${data.projects.map(proj => `${proj.name}: ${proj.description} (Tech: ${proj.technologies})`).join('; ')}
-${data.languages ? `Languages: ${data.languages.join(', ')}` : ''}
-${data.achievements ? `Achievements: ${data.achievements.join(', ')}` : ''}
-
-Return the resume in clean markdown format with proper sections and formatting. Include relevant keywords for the target job role to optimize for ATS systems.`;
-
+export const generateResumeContent = async (prompt: string): Promise<string> => {
   try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Error generating resume:', error);
-    throw new Error('Failed to generate resume. Please try again.');
+    console.error('Error generating content:', error);
+    throw new Error('Failed to generate content');
   }
 };
 
-export const analyzeResume = async (resumeText: string): Promise<AnalysisResult> => {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-  const prompt = `Analyze the following resume text for ATS optimization and job alignment.
-
-Provide your analysis in the following JSON format:
-{
-  "atsScore": number (out of 100),
-  "missingKeywords": ["keyword1", "keyword2"],
-  "formatSuggestions": ["suggestion1", "suggestion2"],
-  "improvements": ["improvement1", "improvement2"],
-  "matchingJobRoles": ["role1", "role2", "role3"]
-}
-
-Resume Text:
-${resumeText}
-
-Focus on ATS compatibility, keyword optimization, formatting issues, and suggest specific improvements to make the resume more competitive.`;
-
+export const generateChatResponse = async (message: string): Promise<string> => {
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
     
-    // Extract JSON from the response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
+    const prompt = `You are a helpful AI career assistant. Provide professional advice about resumes, job search, career development, and interview preparation. Keep responses concise and actionable.
+
+    User message: ${message}`;
     
-    // Fallback if JSON parsing fails
-    return {
-      atsScore: 75,
-      missingKeywords: ['Extracted from analysis'],
-      formatSuggestions: ['Analysis completed'],
-      improvements: ['Review suggestions provided'],
-      matchingJobRoles: ['Various roles identified']
-    };
-  } catch (error) {
-    console.error('Error analyzing resume:', error);
-    throw new Error('Failed to analyze resume. Please try again.');
-  }
-};
-
-export const getJobSuggestions = async (resumeText: string, targetRole?: string): Promise<string> => {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-  const prompt = `Based on the following resume${targetRole ? ` and target role of ${targetRole}` : ''}, provide job matching suggestions in markdown format:
-
-1. **Best Matching Job Titles** (5-7 specific roles)
-2. **Skills to Acquire** (3-5 skills that would make the candidate more competitive)
-3. **Recommended Industries** (3-4 industries where this profile would fit well)
-4. **Career Growth Path** (next 2-3 career steps)
-5. **Salary Expectations** (approximate range based on experience and skills)
-
-Resume:
-${resumeText}
-
-Provide actionable, specific recommendations that the candidate can use to improve their job search strategy.`;
-
-  try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Error getting job suggestions:', error);
-    throw new Error('Failed to get job suggestions. Please try again.');
+    console.error('Error generating chat response:', error);
+    throw new Error('Failed to generate response');
+  }
+};
+
+export const generateColdEmail = async (prompt: string): Promise<string> => {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating cold email:', error);
+    throw new Error('Failed to generate cold email');
   }
 };
