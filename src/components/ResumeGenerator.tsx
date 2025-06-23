@@ -11,12 +11,45 @@ import { generateResume, type ResumeData } from '../services/geminiApi';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 
+// Form data interface - matches what the HTML form actually uses
+interface FormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  jobRole: string;
+  summary?: string;
+  skills: string; // String in form, will be converted to array
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+    gpa?: string;
+  }>;
+  experience: Array<{
+    company: string;
+    role: string;
+    duration: string;
+    description: string;
+  }>;
+  certifications: string; // String in form, will be converted to array
+  projects: Array<{
+    name: string;
+    description: string;
+    technologies: string;
+  }>;
+  languages?: string; // String in form, will be converted to array
+  achievements?: string; // String in form, will be converted to array
+}
+
 const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: string) => void }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] = useState('');
   const { toast } = useToast();
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<ResumeData>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       skills: '',
       education: [{ degree: '', institution: '', year: '' }],
@@ -43,16 +76,16 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
     name: 'projects'
   });
 
-  const onSubmit = async (data: ResumeData) => {
+  const onSubmit = async (data: FormData) => {
     setIsGenerating(true);
     try {
-      // Process array fields - convert strings to arrays
+      // Convert form data to ResumeData format
       const processedData: ResumeData = {
         ...data,
-        skills: Array.isArray(data.skills) ? data.skills : (data.skills as string).split(',').map(s => s.trim()),
-        certifications: Array.isArray(data.certifications) ? data.certifications : (data.certifications as string).split(',').map(s => s.trim()),
-        languages: Array.isArray(data.languages) ? data.languages : data.languages ? (data.languages as string).split(',').map(s => s.trim()) : [],
-        achievements: Array.isArray(data.achievements) ? data.achievements : data.achievements ? (data.achievements as string).split(',').map(s => s.trim()) : []
+        skills: data.skills.split(',').map(s => s.trim()).filter(s => s.length > 0),
+        certifications: data.certifications.split(',').map(s => s.trim()).filter(s => s.length > 0),
+        languages: data.languages ? data.languages.split(',').map(s => s.trim()).filter(s => s.length > 0) : [],
+        achievements: data.achievements ? data.achievements.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
       };
 
       const resume = await generateResume(processedData);
