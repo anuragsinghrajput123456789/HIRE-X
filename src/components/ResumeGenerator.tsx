@@ -18,13 +18,13 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
 
   const { register, control, handleSubmit, formState: { errors } } = useForm<ResumeData>({
     defaultValues: {
-      skills: [],
+      skills: '',
       education: [{ degree: '', institution: '', year: '' }],
       experience: [{ company: '', role: '', duration: '', description: '' }],
-      certifications: [],
+      certifications: '',
       projects: [{ name: '', description: '', technologies: '' }],
-      languages: [],
-      achievements: []
+      languages: '',
+      achievements: ''
     }
   });
 
@@ -46,13 +46,13 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
   const onSubmit = async (data: ResumeData) => {
     setIsGenerating(true);
     try {
-      // Process array fields
-      const processedData = {
+      // Process array fields - convert strings to arrays
+      const processedData: ResumeData = {
         ...data,
-        skills: typeof data.skills === 'string' ? data.skills.split(',').map(s => s.trim()) : data.skills,
-        certifications: typeof data.certifications === 'string' ? data.certifications.split(',').map(s => s.trim()) : data.certifications,
-        languages: data.languages && typeof data.languages === 'string' ? data.languages.split(',').map(s => s.trim()) : data.languages || [],
-        achievements: data.achievements && typeof data.achievements === 'string' ? data.achievements.split(',').map(s => s.trim()) : data.achievements || []
+        skills: Array.isArray(data.skills) ? data.skills : (data.skills as string).split(',').map(s => s.trim()),
+        certifications: Array.isArray(data.certifications) ? data.certifications : (data.certifications as string).split(',').map(s => s.trim()),
+        languages: Array.isArray(data.languages) ? data.languages : data.languages ? (data.languages as string).split(',').map(s => s.trim()) : [],
+        achievements: Array.isArray(data.achievements) ? data.achievements : data.achievements ? (data.achievements as string).split(',').map(s => s.trim()) : []
       };
 
       const resume = await generateResume(processedData);
