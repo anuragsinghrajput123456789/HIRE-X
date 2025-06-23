@@ -14,7 +14,7 @@ export interface AnalysisResult {
 
 export const generateResumeContent = async (prompt: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
@@ -26,7 +26,7 @@ export const generateResumeContent = async (prompt: string): Promise<string> => 
 
 export const generateResume = async (data: ResumeData): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `Create a professional, ATS-optimized resume based on the following information:
 
@@ -63,7 +63,7 @@ Please format this as a professional resume with proper sections, bullet points,
 
 export const analyzeResume = async (resumeText: string): Promise<AnalysisResult> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `Analyze the following resume and provide a detailed analysis in JSON format:
 
@@ -115,7 +115,7 @@ Focus on:
 
 export const getJobSuggestions = async (resumeText: string, targetRole?: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `Based on the following resume, provide personalized job recommendations and career guidance:
 
@@ -144,7 +144,7 @@ Format the response with clear sections and actionable advice.`;
 
 export const generateChatResponse = async (message: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `You are a helpful AI career assistant. Provide professional advice about resumes, job search, career development, and interview preparation. Keep responses concise and actionable.
 
@@ -161,7 +161,7 @@ export const generateChatResponse = async (message: string): Promise<string> => 
 
 export const generateColdEmail = async (prompt: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
