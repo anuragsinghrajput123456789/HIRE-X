@@ -1,41 +1,9 @@
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ResumeData } from '../types/resumeTypes';
 
 const API_KEY = 'AIzaSyAHI6dEYABoLBXht70PtS97_fPFruDipH8';
 
 const genAI = new GoogleGenerativeAI(API_KEY);
-
-export interface ResumeData {
-  fullName: string;
-  email: string;
-  phone: string;
-  linkedin?: string;
-  github?: string;
-  portfolio?: string;
-  jobRole: string;
-  summary?: string;
-  skills: string[];
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: string;
-    gpa?: string;
-  }>;
-  experience: Array<{
-    company: string;
-    role: string;
-    duration: string;
-    description: string;
-  }>;
-  certifications: string[];
-  projects: Array<{
-    name: string;
-    description: string;
-    technologies: string;
-  }>;
-  languages?: string[];
-  achievements?: string[];
-}
 
 export interface AnalysisResult {
   atsScore: number;
