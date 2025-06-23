@@ -1,14 +1,16 @@
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Download } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 interface PDFExportProps {
   content: string;
   filename?: string;
+  elementId?: string;
 }
 
-const PDFExport = ({ content, filename = 'resume' }: PDFExportProps) => {
+const PDFExport = ({ content, filename = 'resume', elementId = 'resume-preview' }: PDFExportProps) => {
   const { toast } = useToast();
 
   const exportToPDF = async () => {
@@ -22,20 +24,22 @@ const PDFExport = ({ content, filename = 'resume' }: PDFExportProps) => {
     }
 
     try {
-      // Create a temporary div with the content
-      const element = document.createElement('div');
-      element.innerHTML = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px;">
-          ${content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
-        </div>
-      `;
+      const element = document.getElementById(elementId);
+      if (!element) {
+        toast({
+          title: "Export Failed",
+          description: "Resume preview not found. Please generate a resume first.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const opt = {
-        margin: 1,
+        margin: 0.5,
         filename: `${filename}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
 
       await html2pdf().set(opt).from(element).save();
@@ -58,8 +62,10 @@ const PDFExport = ({ content, filename = 'resume' }: PDFExportProps) => {
       onClick={exportToPDF}
       variant="outline"
       disabled={!content.trim()}
+      className="flex items-center gap-2"
     >
-      📄 Export PDF
+      <Download size={16} />
+      Export PDF
     </Button>
   );
 };
