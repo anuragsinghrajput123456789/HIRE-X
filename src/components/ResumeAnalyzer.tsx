@@ -9,7 +9,24 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { analyzeResume, generateResumeContent, type AnalysisResult } from '../services/geminiApi';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, AlertCircle, FileText, Sparkles, Download, Upload, Loader2 } from 'lucide-react';
+import { 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  FileText, 
+  Sparkles, 
+  Download, 
+  Upload, 
+  Loader2,
+  Brain,
+  Target,
+  TrendingUp,
+  Award,
+  Eye,
+  RefreshCw,
+  Zap,
+  Copy
+} from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Set up PDF.js worker
@@ -21,27 +38,44 @@ const ResumeAnalyzer = () => {
   const [isGeneratingCorrections, setIsGeneratingCorrections] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [corrections, setCorrections] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
+      setUploadProgress(10);
+      
       const arrayBuffer = await file.arrayBuffer();
+      setUploadProgress(30);
+      
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      setUploadProgress(50);
+      
       let fullText = '';
+      const totalPages = pdf.numPages;
 
-      for (let i = 1; i <= pdf.numPages; i++) {
+      for (let i = 1; i <= totalPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ');
         fullText += pageText + ' ';
+        
+        // Update progress
+        setUploadProgress(50 + (i / totalPages) * 40);
       }
 
+      setUploadProgress(100);
+      
+      // Reset progress after a short delay
+      setTimeout(() => setUploadProgress(0), 1000);
+      
       return fullText.trim();
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
-      throw new Error('Failed to extract text from PDF');
+      setUploadProgress(0);
+      throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF.');
     }
   };
 
@@ -58,17 +92,37 @@ const ResumeAnalyzer = () => {
       return;
     }
 
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "File Too Large",
+        description: "Please upload a PDF file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const text = await extractTextFromPDF(file);
+      
+      if (!text || text.trim().length < 50) {
+        toast({
+          title: "No Text Found",
+          description: "The PDF appears to be empty or contains only images. Please upload a text-based PDF.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setResumeText(text);
       toast({
         title: "Resume Uploaded Successfully",
-        description: "PDF text extracted. You can now analyze your resume.",
+        description: `PDF text extracted successfully! ${text.length} characters found.`,
       });
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: "Failed to extract text from PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to process PDF. Please try again.",
         variant: "destructive",
       });
     }
@@ -79,7 +133,8 @@ const ResumeAnalyzer = () => {
     accept: {
       'application/pdf': ['.pdf']
     },
-    multiple: false
+    multiple: false,
+    maxSize: 10 * 1024 * 1024 // 10MB
   });
 
   const handleAnalyze = async () => {
@@ -92,7 +147,18 @@ const ResumeAnalyzer = () => {
       return;
     }
 
+    if (resumeText.trim().length < 50) {
+      toast({
+        title: "Resume Too Short",
+        description: "Please provide a more detailed resume for analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
+    setAnalysis(null);
+    
     try {
       const result = await analyzeResume(resumeText);
       setAnalysis(result);
@@ -123,6 +189,7 @@ const ResumeAnalyzer = () => {
     }
 
     setIsGeneratingCorrections(true);
+    
     try {
       const prompt = `Based on this resume analysis, generate a corrected and improved version of the resume:
 
@@ -156,15 +223,15 @@ Please provide a complete, improved resume that addresses all the issues identif
   };
 
   const getScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle className="w-8 h-8 text-green-500" />;
-    if (score >= 60) return <AlertCircle className="w-8 h-8 text-yellow-500" />;
-    return <XCircle className="w-8 h-8 text-red-500" />;
+    if (score >= 80) return <Award className="w-8 h-8 text-green-500 animate-pulse" />;
+    if (score >= 60) return <Target className="w-8 h-8 text-yellow-500 animate-bounce" />;
+    return <AlertCircle className="w-8 h-8 text-red-500 animate-pulse" />;
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (score >= 80) return 'from-green-500 to-emerald-600';
+    if (score >= 60) return 'from-yellow-500 to-orange-500';
+    return 'from-red-500 to-red-600';
   };
 
   const getScoreLabel = (score: number) => {
@@ -173,221 +240,319 @@ Please provide a complete, improved resume that addresses all the issues identif
     return 'ATS Rejected - Needs Improvement';
   };
 
+  const getScoreMessage = (score: number) => {
+    if (score >= 80) return 'Your resume is well-optimized for ATS systems!';
+    if (score >= 60) return 'Your resume has potential but needs some improvements.';
+    return 'Your resume needs significant improvements to pass ATS filters.';
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
       <div className="space-y-6">
         {/* Upload Section */}
-        <Card className="animate-fade-in">
+        <Card className="animate-fade-in border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="gradient-text flex items-center gap-2">
-              <FileText className="w-6 h-6" />
-              Upload Resume
+            <CardTitle className="gradient-text flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <FileText className="w-6 h-6" />
+              </div>
+              Upload Your Resume
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 ${
+              className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
                 isDragActive
-                  ? 'border-primary bg-primary/10 scale-105'
-                  : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5'
+                  ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg'
+                  : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.01]'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="space-y-2">
-                <div className="text-4xl animate-bounce">
-                  {isDragActive ? <Download className="w-12 h-12 mx-auto text-primary" /> : <Upload className="w-12 h-12 mx-auto text-muted-foreground" />}
+              <div className="space-y-4">
+                <div className="text-6xl animate-bounce">
+                  {isDragActive ? (
+                    <Download className="w-16 h-16 mx-auto text-primary animate-pulse" />
+                  ) : (
+                    <Upload className="w-16 h-16 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
+                  )}
                 </div>
-                <p className="text-lg font-medium">
-                  {isDragActive
-                    ? 'Drop your resume here'
-                    : 'Drag & drop your resume (PDF only)'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  or click to select a file
-                </p>
+                <div>
+                  <p className="text-xl font-semibold mb-2">
+                    {isDragActive
+                      ? 'Drop your resume here!'
+                      : 'Drag & drop your resume (PDF only)'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    or click to select a file • Max size: 10MB
+                  </p>
+                </div>
+                
+                {uploadProgress > 0 && (
+                  <div className="space-y-2 animate-fade-in">
+                    <p className="text-sm font-medium">Processing PDF...</p>
+                    <Progress value={uploadProgress} className="w-full" />
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="mt-4">
-              <p className="text-sm font-medium mb-2">Or paste your resume text below:</p>
-              <Textarea
-                value={resumeText}
-                onChange={(e) => setResumeText(e.target.value)}
-                placeholder="Paste your resume content here..."
-                rows={8}
-                className="w-full"
-              />
-            </div>
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-px bg-border flex-1" />
+                <span className="text-sm text-muted-foreground font-medium">OR</span>
+                <div className="h-px bg-border flex-1" />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  Paste your resume text below:
+                </label>
+                <Textarea
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  placeholder="Paste your resume content here..."
+                  rows={8}
+                  className="w-full resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+                {resumeText && (
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    {resumeText.length} characters
+                  </p>
+                )}
+              </div>
 
-            <Button
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || !resumeText.trim()}
-              className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing Resume...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Analyze Resume
-                </>
-              )}
-            </Button>
+              <Button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !resumeText.trim()}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
+                size="lg"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Analyzing Resume...
+                  </>
+                ) : (
+                  <>
+                    <Brain className="w-5 h-5 mr-2" />
+                    Analyze Resume with AI
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Analysis Results */}
       <div className="space-y-6">
-        <Card className="animate-fade-in">
+        <Card className="animate-fade-in border-2 border-primary/10">
           <CardHeader>
-            <CardTitle className="gradient-text">Analysis Results</CardTitle>
+            <CardTitle className="gradient-text flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              AI Analysis Results
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {analysis ? (
               <div className="space-y-6">
-                {/* ATS Score with Animation */}
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg animate-scale-in">
+                {/* ATS Score with Enhanced Animation */}
+                <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-xl text-white animate-scale-in shadow-lg`}>
                   <div className="flex items-center justify-center mb-4">
-                    <div className="animate-pulse">
-                      {getScoreIcon(analysis.atsScore)}
-                    </div>
+                    {getScoreIcon(analysis.atsScore)}
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">ATS Score</h3>
-                  <div className="text-4xl font-bold gradient-text mb-2 animate-fade-in">
+                  <h3 className="text-xl font-bold mb-2">ATS Compatibility Score</h3>
+                  <div className="text-5xl font-bold mb-3 animate-fade-in">
                     {analysis.atsScore}/100
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 font-medium">
+                  <p className="text-lg font-semibold mb-2">
                     {getScoreLabel(analysis.atsScore)}
                   </p>
-                  <Progress
-                    value={analysis.atsScore}
-                    className="w-full h-3 animate-fade-in"
-                  />
-                </div>
-
-                {/* Generate Corrections Button */}
-                <Button
-                  onClick={handleGenerateCorrections}
-                  disabled={isGeneratingCorrections}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-300 hover:scale-105"
-                >
-                  {isGeneratingCorrections ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating Corrections...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate AI Corrections
-                    </>
-                  )}
-                </Button>
-
-                {/* Missing Keywords */}
-                <div className="animate-slide-in-right">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500" />
-                    Missing Keywords
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.missingKeywords.map((keyword, index) => (
-                      <Badge key={index} variant="destructive" className="animate-fade-in hover:scale-105 transition-transform">
-                        {keyword}
-                      </Badge>
-                    ))}
+                  <p className="text-sm opacity-90">
+                    {getScoreMessage(analysis.atsScore)}
+                  </p>
+                  <div className="mt-4">
+                    <Progress
+                      value={analysis.atsScore}
+                      className="w-full h-3 bg-white/20"
+                    />
                   </div>
                 </div>
 
-                {/* Format Suggestions */}
-                <div className="animate-slide-in-right">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-yellow-500" />
-                    Format Suggestions
-                  </h4>
-                  <ul className="space-y-2">
-                    {analysis.formatSuggestions.map((suggestion, index) => (
-                      <li key={index} className="flex items-start gap-2 animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
-                        <span className="text-blue-500 mt-1">•</span>
-                        <span className="text-sm">{suggestion}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button
+                    onClick={handleGenerateCorrections}
+                    disabled={isGeneratingCorrections}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
+                  >
+                    {isGeneratingCorrections ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        AI Corrections
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    onClick={handleAnalyze}
+                    variant="outline"
+                    disabled={isAnalyzing}
+                    className="hover:scale-[1.02] transition-all duration-300"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Re-analyze
+                  </Button>
                 </div>
 
-                {/* Improvements */}
-                <div className="animate-slide-in-right">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Recommended Improvements
-                  </h4>
-                  <ul className="space-y-2">
-                    {analysis.improvements.map((improvement, index) => (
-                      <li key={index} className="flex items-start gap-2 animate-fade-in" style={{animationDelay: `${index * 0.1}s`}}>
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span className="text-sm">{improvement}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Analysis Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Missing Keywords */}
+                  <div className="animate-slide-in-right">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-600 dark:text-red-400">
+                      <XCircle className="w-5 h-5" />
+                      Missing Keywords ({analysis.missingKeywords.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                      {analysis.missingKeywords.map((keyword, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="destructive" 
+                          className="animate-fade-in hover:scale-105 transition-transform text-xs"
+                          style={{animationDelay: `${index * 0.1}s`}}
+                        >
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Matching Job Roles */}
+                  <div className="animate-slide-in-right">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                      <Target className="w-5 h-5" />
+                      Matching Roles ({analysis.matchingJobRoles.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                      {analysis.matchingJobRoles.map((role, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="outline" 
+                          className="animate-fade-in hover:scale-105 transition-transform text-xs border-blue-200 text-blue-700 dark:border-blue-700 dark:text-blue-300"
+                          style={{animationDelay: `${index * 0.1}s`}}
+                        >
+                          {role}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Matching Job Roles */}
-                <div className="animate-slide-in-right">
-                  <h4 className="font-semibold mb-3">Matching Job Roles</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.matchingJobRoles.map((role, index) => (
-                      <Badge key={index} variant="outline" className="animate-fade-in hover:scale-105 transition-transform" style={{animationDelay: `${index * 0.1}s`}}>
-                        {role}
-                      </Badge>
-                    ))}
+                {/* Suggestions */}
+                <div className="space-y-4">
+                  <div className="animate-slide-in-right">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                      <AlertCircle className="w-5 h-5" />
+                      Format Suggestions
+                    </h4>
+                    <ul className="space-y-2 max-h-40 overflow-y-auto">
+                      {analysis.formatSuggestions.map((suggestion, index) => (
+                        <li key={index} className="flex items-start gap-3 animate-fade-in p-2 rounded-lg hover:bg-accent/50 transition-colors" style={{animationDelay: `${index * 0.1}s`}}>
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-sm">{suggestion}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="animate-slide-in-right">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <CheckCircle className="w-5 h-5" />
+                      Recommended Improvements
+                    </h4>
+                    <ul className="space-y-2 max-h-40 overflow-y-auto">
+                      {analysis.improvements.map((improvement, index) => (
+                        <li key={index} className="flex items-start gap-3 animate-fade-in p-2 rounded-lg hover:bg-accent/50 transition-colors" style={{animationDelay: `${index * 0.1}s`}}>
+                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{improvement}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="text-center text-muted-foreground py-12 animate-pulse">
-                <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Analysis results will appear here</p>
-                <p className="text-sm mt-2">Upload your resume and click "Analyze Resume" to get started</p>
+                <div className="space-y-4">
+                  <Brain className="w-20 h-20 mx-auto opacity-30" />
+                  <div>
+                    <p className="text-xl font-medium">Ready for AI Analysis</p>
+                    <p className="text-sm mt-2">Upload your resume and click "Analyze Resume" to get started</p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Corrections Section */}
+        {/* AI Corrections Section */}
         {corrections && (
-          <Card className="animate-fade-in">
+          <Card className="animate-fade-in border-2 border-green-200 dark:border-green-800">
             <CardHeader>
-              <CardTitle className="gradient-text flex items-center gap-2">
-                <Sparkles className="w-6 h-6" />
+              <CardTitle className="gradient-text flex items-center gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                  <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
                 AI-Generated Corrections
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg">
-                  <h4 className="font-semibold text-green-700 dark:text-green-300 mb-2">Improved Resume:</h4>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+                  <h4 className="font-semibold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    Your Improved Resume:
+                  </h4>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap text-sm">{corrections}</pre>
+                    <pre className="whitespace-pre-wrap text-sm font-mono bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto">{corrections}</pre>
                   </div>
                 </div>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(corrections);
-                    toast({
-                      title: "Copied to Clipboard",
-                      description: "The corrected resume has been copied to your clipboard.",
-                    });
-                  }}
-                  variant="outline"
-                  className="w-full hover:scale-105 transition-transform"
-                >
-                  Copy Corrected Resume
-                </Button>
+                
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(corrections);
+                      toast({
+                        title: "Copied to Clipboard",
+                        description: "The corrected resume has been copied to your clipboard.",
+                      });
+                    }}
+                    variant="outline"
+                    className="flex-1 hover:scale-[1.02] transition-transform"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Resume
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setCorrections('')}
+                    variant="ghost"
+                    size="sm"
+                    className="hover:scale-105 transition-transform"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
