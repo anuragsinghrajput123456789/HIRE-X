@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -27,10 +26,6 @@ import {
   Zap,
   Copy
 } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
@@ -45,37 +40,49 @@ const ResumeAnalyzer = () => {
     try {
       setUploadProgress(10);
       
-      const arrayBuffer = await file.arrayBuffer();
-      setUploadProgress(30);
+      // Use FileReader to read the file as text first
+      const reader = new FileReader();
       
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      setUploadProgress(50);
-      
-      let fullText = '';
-      const totalPages = pdf.numPages;
-
-      for (let i = 1; i <= totalPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + ' ';
+      return new Promise((resolve, reject) => {
+        reader.onload = async (e) => {
+          try {
+            setUploadProgress(50);
+            
+            // If it's a simple text-based PDF, try to extract text directly
+            const arrayBuffer = e.target?.result as ArrayBuffer;
+            const text = new TextDecoder().decode(arrayBuffer);
+            
+            setUploadProgress(80);
+            
+            // Basic text extraction - look for readable text patterns
+            const extractedText = text.replace(/[^\x20-\x7E\n\r]/g, ' ').trim();
+            
+            if (extractedText && extractedText.length > 100) {
+              setUploadProgress(100);
+              setTimeout(() => setUploadProgress(0), 1000);
+              resolve(extractedText);
+            } else {
+              // If no readable text found, inform user
+              setUploadProgress(0);
+              reject(new Error('This PDF appears to be image-based or encrypted. Please use a text-based PDF or copy-paste your resume content manually.'));
+            }
+          } catch (error) {
+            setUploadProgress(0);
+            reject(new Error('Failed to process PDF. Please try copying and pasting your resume text instead.'));
+          }
+        };
         
-        // Update progress
-        setUploadProgress(50 + (i / totalPages) * 40);
-      }
-
-      setUploadProgress(100);
-      
-      // Reset progress after a short delay
-      setTimeout(() => setUploadProgress(0), 1000);
-      
-      return fullText.trim();
+        reader.onerror = () => {
+          setUploadProgress(0);
+          reject(new Error('Failed to read the PDF file.'));
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
       setUploadProgress(0);
-      throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF.');
+      throw new Error('Failed to extract text from PDF. Please copy and paste your resume text manually.');
     }
   };
 
@@ -107,7 +114,7 @@ const ResumeAnalyzer = () => {
       if (!text || text.trim().length < 50) {
         toast({
           title: "No Text Found",
-          description: "The PDF appears to be empty or contains only images. Please upload a text-based PDF.",
+          description: "Please copy and paste your resume text in the text area below.",
           variant: "destructive",
         });
         return;
@@ -122,7 +129,7 @@ const ResumeAnalyzer = () => {
       console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to process PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Please try copying and pasting your resume text instead.",
         variant: "destructive",
       });
     }
@@ -286,6 +293,9 @@ Please provide a complete, improved resume that addresses all the issues identif
                   <p className="text-sm text-muted-foreground">
                     or click to select a file • Max size: 10MB
                   </p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
+                    Note: If PDF upload fails, please copy and paste your resume text below
+                  </p>
                 </div>
                 
                 {uploadProgress > 0 && (
@@ -300,7 +310,7 @@ Please provide a complete, improved resume that addresses all the issues identif
             <div className="mt-6 space-y-4">
               <div className="flex items-center gap-2">
                 <div className="h-px bg-border flex-1" />
-                <span className="text-sm text-muted-foreground font-medium">OR</span>
+                <span className="text-sm text-muted-foreground font-medium">OR PASTE TEXT</span>
                 <div className="h-px bg-border flex-1" />
               </div>
               
@@ -312,7 +322,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <Textarea
                   value={resumeText}
                   onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your resume content here..."
+                  placeholder="Paste your complete resume content here..."
                   rows={8}
                   className="w-full resize-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
