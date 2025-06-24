@@ -24,7 +24,9 @@ import {
   Eye,
   RefreshCw,
   Zap,
-  Copy
+  Copy,
+  FilePlus,
+  Star
 } from 'lucide-react';
 
 const ResumeAnalyzer = () => {
@@ -198,7 +200,7 @@ const ResumeAnalyzer = () => {
     setIsGeneratingCorrections(true);
     
     try {
-      const prompt = `Based on this resume analysis, generate a corrected and improved version of the resume:
+      const prompt = `Based on this resume analysis, generate a corrected and improved ATS-friendly version of the resume:
 
 Original Resume:
 ${resumeText}
@@ -209,13 +211,18 @@ Analysis Results:
 - Format Suggestions: ${analysis.formatSuggestions.join(', ')}
 - Improvements: ${analysis.improvements.join(', ')}
 
-Please provide a complete, improved resume that addresses all the issues identified in the analysis. Make it ATS-friendly and professional.`;
+Please provide a complete, improved resume that addresses all the issues identified in the analysis. Make it ATS-friendly and professional. Focus on:
+1. Adding missing keywords naturally
+2. Improving formatting for ATS parsing
+3. Enhancing content with quantifiable achievements
+4. Using action verbs and industry-standard terminology
+5. Ensuring proper section headers and structure`;
 
       const correctedResume = await generateResumeContent(prompt);
       setCorrections(correctedResume);
       toast({
-        title: "Corrections Generated",
-        description: "Your improved resume has been generated!",
+        title: "ATS-Friendly Resume Generated!",
+        description: "Your improved resume is ready for download.",
       });
     } catch (error) {
       console.error('Correction generation error:', error);
@@ -227,6 +234,23 @@ Please provide a complete, improved resume that addresses all the issues identif
     } finally {
       setIsGeneratingCorrections(false);
     }
+  };
+
+  const downloadATSResume = () => {
+    if (!corrections) return;
+    
+    const element = document.createElement('a');
+    const file = new Blob([corrections], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = 'ats-friendly-resume.txt';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    
+    toast({
+      title: "Resume Downloaded",
+      description: "Your ATS-friendly resume has been downloaded successfully!",
+    });
   };
 
   const getScoreIcon = (score: number) => {
@@ -394,6 +418,41 @@ Please provide a complete, improved resume that addresses all the issues identif
                   </div>
                 </div>
 
+                {/* ATS Improvement Section */}
+                {analysis.atsScore < 80 && (
+                  <Card className="border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+                    <CardHeader>
+                      <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                        <Star className="w-5 h-5" />
+                        ATS Improvement Available
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-orange-600 dark:text-orange-400">
+                        Your resume needs improvement to pass ATS filters. Let our AI generate an optimized version for you!
+                      </p>
+                      
+                      <Button
+                        onClick={handleGenerateCorrections}
+                        disabled={isGeneratingCorrections}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
+                      >
+                        {isGeneratingCorrections ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating ATS-Friendly Resume...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4 mr-2" />
+                            Generate ATS-Friendly Resume
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Action Buttons */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Button
@@ -523,7 +582,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
                   <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                AI-Generated Corrections
+                ATS-Friendly Resume Ready!
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -531,36 +590,44 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
                   <h4 className="font-semibold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
                     <Award className="w-5 h-5" />
-                    Your Improved Resume:
+                    Your Improved ATS-Friendly Resume:
                   </h4>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
                     <pre className="whitespace-pre-wrap text-sm font-mono bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto">{corrections}</pre>
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Button
                     onClick={() => {
                       navigator.clipboard.writeText(corrections);
                       toast({
                         title: "Copied to Clipboard",
-                        description: "The corrected resume has been copied to your clipboard.",
+                        description: "The ATS-friendly resume has been copied to your clipboard.",
                       });
                     }}
                     variant="outline"
-                    className="flex-1 hover:scale-[1.02] transition-transform"
+                    className="hover:scale-[1.02] transition-transform"
                   >
                     <Copy className="w-4 h-4 mr-2" />
-                    Copy Resume
+                    Copy Text
+                  </Button>
+                  
+                  <Button
+                    onClick={downloadATSResume}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02] transition-all text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Resume
                   </Button>
                   
                   <Button
                     onClick={() => setCorrections('')}
                     variant="ghost"
-                    size="sm"
                     className="hover:scale-105 transition-transform"
                   >
-                    <XCircle className="w-4 h-4" />
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Clear
                   </Button>
                 </div>
               </div>
