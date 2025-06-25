@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ResumeData } from '../types/resumeTypes';
 
@@ -28,36 +27,58 @@ export const generateResume = async (data: ResumeData): Promise<string> => {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const prompt = `Create a professional, ATS-optimized resume based on the following information:
+    const prompt = `Create a highly ATS-optimized, professional resume that will pass through Applicant Tracking Systems. Use the following guidelines:
 
+CRITICAL ATS REQUIREMENTS:
+- Use standard section headers: PROFESSIONAL SUMMARY, CORE COMPETENCIES, PROFESSIONAL EXPERIENCE, EDUCATION, KEY PROJECTS
+- Include relevant keywords for the ${data.jobRole} role
+- Use action verbs and quantifiable achievements
+- Ensure proper formatting with consistent fonts and spacing
+- Include industry-specific terminology and skills
+
+CANDIDATE INFORMATION:
 Name: ${data.fullName}
 Email: ${data.email}
 Phone: ${data.phone}
-Job Role: ${data.jobRole}
+Target Role: ${data.jobRole}
+${data.linkedin ? `LinkedIn: ${data.linkedin}` : ''}
+${data.github ? `GitHub: ${data.github}` : ''}
+${data.summary ? `Summary: ${data.summary}` : ''}
 
-Skills: ${data.skills.join(', ')}
+SKILLS (optimize with industry keywords): 
+${data.skills.join(', ')}
 
-Education:
-${data.education.map(edu => `- ${edu.degree} from ${edu.institution} (${edu.year})`).join('\n')}
+EDUCATION:
+${data.education.map(edu => `${edu.degree} from ${edu.institution} (${edu.year})${edu.gpa ? ` - GPA: ${edu.gpa}` : ''}`).join('\n')}
 
-Experience:
-${data.experience.map(exp => `- ${exp.role} at ${exp.company} (${exp.duration})\n  ${exp.description}`).join('\n\n')}
+PROFESSIONAL EXPERIENCE:
+${data.experience.map(exp => `${exp.role} at ${exp.company} (${exp.duration})
+${exp.description}`).join('\n\n')}
 
-${data.projects.length > 0 ? `Projects:
-${data.projects.map(proj => `- ${proj.name}: ${proj.description} (Technologies: ${proj.technologies})`).join('\n')}` : ''}
+${data.projects.length > 0 ? `KEY PROJECTS:
+${data.projects.map(proj => `${proj.name}: ${proj.description} (Technologies: ${proj.technologies})`).join('\n')}` : ''}
 
-${data.certifications.length > 0 ? `Certifications: ${data.certifications.join(', ')}` : ''}
-${data.languages.length > 0 ? `Languages: ${data.languages.join(', ')}` : ''}
-${data.achievements.length > 0 ? `Achievements: ${data.achievements.join(', ')}` : ''}
+${data.certifications.length > 0 ? `CERTIFICATIONS: ${data.certifications.join(', ')}` : ''}
+${data.languages.length > 0 ? `LANGUAGES: ${data.languages.join(', ')}` : ''}
+${data.achievements.length > 0 ? `ACHIEVEMENTS: ${data.achievements.join(', ')}` : ''}
 
-Please format this as a professional resume with proper sections, bullet points, and ATS-friendly formatting. Use markdown formatting for better readability.`;
+INSTRUCTIONS:
+1. Create compelling professional summary with ${data.jobRole} keywords
+2. Optimize skills section with industry-relevant terms
+3. Rewrite experience bullets with strong action verbs and metrics
+4. Ensure all content is ATS-friendly and keyword-rich
+5. Focus on achievements and quantifiable results
+6. Use proper formatting that ATS systems can parse
+7. Include relevant technical and soft skills for ${data.jobRole}
+
+Return the optimized resume content in a clean, professional format.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Error generating resume:', error);
-    throw new Error('Failed to generate resume');
+    console.error('Error generating ATS-optimized resume:', error);
+    throw new Error('Failed to generate ATS-optimized resume. Please check your API key and try again.');
   }
 };
 
