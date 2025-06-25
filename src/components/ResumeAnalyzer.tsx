@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -5,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
 import { analyzeResume, generateResumeContent, type AnalysisResult } from '../services/geminiApi';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -21,13 +21,16 @@ import {
   Target,
   TrendingUp,
   Award,
-  Eye,
   RefreshCw,
   Zap,
   Copy,
-  FilePlus,
-  Star
+  Star,
+  Clock
 } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
@@ -36,55 +39,43 @@ const ResumeAnalyzer = () => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [corrections, setCorrections] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const { toast } = useToast();
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
       setUploadProgress(10);
       
-      // Use FileReader to read the file as text first
-      const reader = new FileReader();
+      const arrayBuffer = await file.arrayBuffer();
+      setUploadProgress(30);
       
-      return new Promise((resolve, reject) => {
-        reader.onload = async (e) => {
-          try {
-            setUploadProgress(50);
-            
-            // If it's a simple text-based PDF, try to extract text directly
-            const arrayBuffer = e.target?.result as ArrayBuffer;
-            const text = new TextDecoder().decode(arrayBuffer);
-            
-            setUploadProgress(80);
-            
-            // Basic text extraction - look for readable text patterns
-            const extractedText = text.replace(/[^\x20-\x7E\n\r]/g, ' ').trim();
-            
-            if (extractedText && extractedText.length > 100) {
-              setUploadProgress(100);
-              setTimeout(() => setUploadProgress(0), 1000);
-              resolve(extractedText);
-            } else {
-              // If no readable text found, inform user
-              setUploadProgress(0);
-              reject(new Error('This PDF appears to be image-based or encrypted. Please use a text-based PDF or copy-paste your resume content manually.'));
-            }
-          } catch (error) {
-            setUploadProgress(0);
-            reject(new Error('Failed to process PDF. Please try copying and pasting your resume text instead.'));
-          }
-        };
-        
-        reader.onerror = () => {
-          setUploadProgress(0);
-          reject(new Error('Failed to read the PDF file.'));
-        };
-        
-        reader.readAsArrayBuffer(file);
-      });
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      setUploadProgress(50);
+      
+      let fullText = '';
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        fullText += pageText + '\n';
+        setUploadProgress(50 + (i / pdf.numPages) * 40);
+      }
+      
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 1000);
+      
+      if (!fullText.trim() || fullText.trim().length < 50) {
+        throw new Error('No readable text found in PDF. Please ensure your PDF contains selectable text.');
+      }
+      
+      return fullText.trim();
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
       setUploadProgress(0);
-      throw new Error('Failed to extract text from PDF. Please copy and paste your resume text manually.');
+      throw new Error('Failed to extract text from PDF. Please ensure it contains readable text.');
     }
   };
 
@@ -101,7 +92,7 @@ const ResumeAnalyzer = () => {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File Too Large",
         description: "Please upload a PDF file smaller than 10MB.",
@@ -112,17 +103,8 @@ const ResumeAnalyzer = () => {
 
     try {
       const text = await extractTextFromPDF(file);
-      
-      if (!text || text.trim().length < 50) {
-        toast({
-          title: "No Text Found",
-          description: "Please copy and paste your resume text in the text area below.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
       setResumeText(text);
+      setQuotaExceeded(false);
       toast({
         title: "Resume Uploaded Successfully",
         description: `PDF text extracted successfully! ${text.length} characters found.`,
@@ -131,7 +113,7 @@ const ResumeAnalyzer = () => {
       console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Please try copying and pasting your resume text instead.",
+        description: error instanceof Error ? error.message : "Failed to process PDF file.",
         variant: "destructive",
       });
     }
@@ -143,14 +125,14 @@ const ResumeAnalyzer = () => {
       'application/pdf': ['.pdf']
     },
     multiple: false,
-    maxSize: 10 * 1024 * 1024 // 10MB
+    maxSize: 10 * 1024 * 1024
   });
 
   const handleAnalyze = async () => {
     if (!resumeText.trim()) {
       toast({
         title: "No Resume Text",
-        description: "Please upload a PDF or paste resume text to analyze.",
+        description: "Please upload a PDF resume to analyze.",
         variant: "destructive",
       });
       return;
@@ -167,6 +149,7 @@ const ResumeAnalyzer = () => {
 
     setIsAnalyzing(true);
     setAnalysis(null);
+    setQuotaExceeded(false);
     
     try {
       const result = await analyzeResume(resumeText);
@@ -175,13 +158,23 @@ const ResumeAnalyzer = () => {
         title: "Analysis Complete",
         description: "Your resume has been analyzed successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Analysis error:', error);
-      toast({
-        title: "Analysis Failed",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
+      
+      if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
+        setQuotaExceeded(true);
+        toast({
+          title: "API Quota Exceeded",
+          description: "The AI service quota has been exceeded. Please try again in a few minutes or upgrade your API plan.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Analysis Failed",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -198,9 +191,10 @@ const ResumeAnalyzer = () => {
     }
 
     setIsGeneratingCorrections(true);
+    setQuotaExceeded(false);
     
     try {
-      const prompt = `Based on this resume analysis, generate a corrected and improved ATS-friendly version of the resume:
+      const prompt = `Based on this resume analysis, generate a complete, corrected and improved ATS-friendly version of the resume:
 
 Original Resume:
 ${resumeText}
@@ -211,12 +205,15 @@ Analysis Results:
 - Format Suggestions: ${analysis.formatSuggestions.join(', ')}
 - Improvements: ${analysis.improvements.join(', ')}
 
-Please provide a complete, improved resume that addresses all the issues identified in the analysis. Make it ATS-friendly and professional. Focus on:
-1. Adding missing keywords naturally
-2. Improving formatting for ATS parsing
-3. Enhancing content with quantifiable achievements
-4. Using action verbs and industry-standard terminology
-5. Ensuring proper section headers and structure`;
+Please provide a complete, professionally formatted resume that addresses all the issues identified. Make it highly ATS-friendly with:
+1. All missing keywords naturally integrated
+2. Professional formatting with clear sections
+3. Quantifiable achievements with metrics
+4. Strong action verbs throughout
+5. Industry-standard terminology
+6. Proper ATS-readable structure
+
+Format the output as a complete, ready-to-use resume.`;
 
       const correctedResume = await generateResumeContent(prompt);
       setCorrections(correctedResume);
@@ -224,13 +221,23 @@ Please provide a complete, improved resume that addresses all the issues identif
         title: "ATS-Friendly Resume Generated!",
         description: "Your improved resume is ready for download.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Correction generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate corrections. Please try again.",
-        variant: "destructive",
-      });
+      
+      if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
+        setQuotaExceeded(true);
+        toast({
+          title: "API Quota Exceeded",
+          description: "The AI service quota has been exceeded. Please try again in a few minutes or upgrade your API plan.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Generation Failed",
+          description: "Failed to generate ATS-friendly resume. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGeneratingCorrections(false);
     }
@@ -242,7 +249,7 @@ Please provide a complete, improved resume that addresses all the issues identif
     const element = document.createElement('a');
     const file = new Blob([corrections], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = 'ats-friendly-resume.txt';
+    element.download = 'ATS_Friendly_Resume.txt';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -287,7 +294,7 @@ Please provide a complete, improved resume that addresses all the issues identif
               <div className="p-2 bg-primary/10 rounded-full">
                 <FileText className="w-6 h-6" />
               </div>
-              Upload Your Resume
+              Upload Your Resume (PDF Only)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -317,9 +324,12 @@ Please provide a complete, improved resume that addresses all the issues identif
                   <p className="text-sm text-muted-foreground">
                     or click to select a file • Max size: 10MB
                   </p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
-                    Note: If PDF upload fails, please copy and paste your resume text below
-                  </p>
+                  {resumeText && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Resume uploaded ({resumeText.length} characters)
+                    </p>
+                  )}
                 </div>
                 
                 {uploadProgress > 0 && (
@@ -331,52 +341,36 @@ Please provide a complete, improved resume that addresses all the issues identif
               </div>
             </div>
 
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-px bg-border flex-1" />
-                <span className="text-sm text-muted-foreground font-medium">OR PASTE TEXT</span>
-                <div className="h-px bg-border flex-1" />
+            {quotaExceeded && (
+              <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                  <Clock className="w-5 h-5" />
+                  <p className="text-sm font-medium">API Quota Exceeded</p>
+                </div>
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                  Please wait a few minutes before trying again, or upgrade your Gemini API plan for higher quotas.
+                </p>
               </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  Paste your resume text below:
-                </label>
-                <Textarea
-                  value={resumeText}
-                  onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your complete resume content here..."
-                  rows={8}
-                  className="w-full resize-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-                {resumeText && (
-                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    {resumeText.length} characters
-                  </p>
-                )}
-              </div>
+            )}
 
-              <Button
-                onClick={handleAnalyze}
-                disabled={isAnalyzing || !resumeText.trim()}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
-                size="lg"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Analyzing Resume...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="w-5 h-5 mr-2" />
-                    Analyze Resume with AI
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || !resumeText.trim() || quotaExceeded}
+              className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              size="lg"
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Analyzing Resume...
+                </>
+              ) : (
+                <>
+                  <Brain className="w-5 h-5 mr-2" />
+                  Analyze Resume with AI
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -395,7 +389,7 @@ Please provide a complete, improved resume that addresses all the issues identif
           <CardContent>
             {analysis ? (
               <div className="space-y-6">
-                {/* ATS Score with Enhanced Animation */}
+                {/* ATS Score */}
                 <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-xl text-white animate-scale-in shadow-lg`}>
                   <div className="flex items-center justify-center mb-4">
                     {getScoreIcon(analysis.atsScore)}
@@ -419,22 +413,22 @@ Please provide a complete, improved resume that addresses all the issues identif
                 </div>
 
                 {/* ATS Improvement Section */}
-                {analysis.atsScore < 80 && (
+                {analysis.atsScore < 90 && (
                   <Card className="border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
                     <CardHeader>
                       <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
                         <Star className="w-5 h-5" />
-                        ATS Improvement Available
+                        Generate ATS-Friendly Resume
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-orange-600 dark:text-orange-400">
-                        Your resume needs improvement to pass ATS filters. Let our AI generate an optimized version for you!
+                        Let our AI create an optimized version of your resume that passes ATS filters and impresses recruiters!
                       </p>
                       
                       <Button
                         onClick={handleGenerateCorrections}
-                        disabled={isGeneratingCorrections}
+                        disabled={isGeneratingCorrections || quotaExceeded}
                         className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
                       >
                         {isGeneratingCorrections ? (
@@ -457,7 +451,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Button
                     onClick={handleGenerateCorrections}
-                    disabled={isGeneratingCorrections}
+                    disabled={isGeneratingCorrections || quotaExceeded}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
                   >
                     {isGeneratingCorrections ? (
@@ -468,7 +462,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                     ) : (
                       <>
                         <Zap className="w-4 h-4 mr-2" />
-                        AI Corrections
+                        AI Improve Resume
                       </>
                     )}
                   </Button>
@@ -476,7 +470,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                   <Button
                     onClick={handleAnalyze}
                     variant="outline"
-                    disabled={isAnalyzing}
+                    disabled={isAnalyzing || quotaExceeded}
                     className="hover:scale-[1.02] transition-all duration-300"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
@@ -566,7 +560,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                   <Brain className="w-20 h-20 mx-auto opacity-30" />
                   <div>
                     <p className="text-xl font-medium">Ready for AI Analysis</p>
-                    <p className="text-sm mt-2">Upload your resume and click "Analyze Resume" to get started</p>
+                    <p className="text-sm mt-2">Upload your resume PDF and click "Analyze Resume" to get started</p>
                   </div>
                 </div>
               </div>
@@ -582,7 +576,7 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
                   <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                ATS-Friendly Resume Ready!
+                Your ATS-Friendly Resume is Ready!
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -590,10 +584,10 @@ Please provide a complete, improved resume that addresses all the issues identif
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
                   <h4 className="font-semibold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
                     <Award className="w-5 h-5" />
-                    Your Improved ATS-Friendly Resume:
+                    Your ATS-Optimized Resume:
                   </h4>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap text-sm font-mono bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto">{corrections}</pre>
+                    <pre className="whitespace-pre-wrap text-sm bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto font-sans">{corrections}</pre>
                   </div>
                 </div>
                 
