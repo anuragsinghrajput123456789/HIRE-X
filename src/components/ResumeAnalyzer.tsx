@@ -41,77 +41,59 @@ const ResumeAnalyzer = () => {
       setUploadProgress(10);
       console.log('Starting PDF text extraction...');
       
-      // Use a more robust approach without relying on external workers
+      // Use FileReader to read the PDF file as array buffer
       const arrayBuffer = await file.arrayBuffer();
       setUploadProgress(30);
-      console.log('PDF file loaded, size:', arrayBuffer.byteLength);
       
-      // Try to use a simpler PDF parsing approach
-      try {
-        // Import PDF.js dynamically with proper error handling
-        const pdfjsLib = await import('pdfjs-dist');
+      // Convert to Uint8Array for processing
+      const uint8Array = new Uint8Array(arrayBuffer);
+      setUploadProgress(50);
+      
+      // Try to extract text using simple string extraction
+      let text = '';
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      
+      // Convert chunks to text and look for readable content
+      for (let i = 0; i < uint8Array.length - 1; i += 1000) {
+        const chunk = uint8Array.slice(i, i + 1000);
+        const chunkText = decoder.decode(chunk);
         
-        // Use the bundled worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        // Filter out non-printable characters and keep only readable text
+        const readableText = chunkText.replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
         
-        setUploadProgress(50);
-        console.log('PDF.js worker configured');
-        
-        const pdf = await pdfjsLib.getDocument({ 
-          data: arrayBuffer,
-          useSystemFonts: true,
-          disableFontFace: true,
-          disableAutoFetch: true,
-          disableStream: true
-        }).promise;
-        
-        setUploadProgress(60);
-        console.log('PDF loaded successfully, pages:', pdf.numPages);
-        
-        let fullText = '';
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          try {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item: any) => {
-                if (item.str) {
-                  return item.str;
-                }
-                return '';
-              })
-              .join(' ');
-            fullText += pageText + '\n';
-            console.log(`Page ${i} extracted, text length:`, pageText.length);
-            setUploadProgress(60 + (i / pdf.numPages) * 30);
-          } catch (pageError) {
-            console.error(`Error extracting page ${i}:`, pageError);
-            // Continue with other pages even if one fails
-          }
+        if (readableText.length > 10) {
+          text += readableText + ' ';
         }
-        
-        setUploadProgress(100);
-        setTimeout(() => setUploadProgress(0), 1000);
-        
-        console.log('Total extracted text length:', fullText.length);
-        
-        if (!fullText.trim() || fullText.trim().length < 50) {
-          throw new Error('No readable text found in PDF. The PDF might contain only images or scanned content. Please ensure your PDF contains selectable text.');
-        }
-        
-        return fullText.trim();
-      } catch (pdfError) {
-        console.error('PDF processing error:', pdfError);
-        
-        // Fallback: Try to extract text using a simpler method
-        const text = await extractTextFallback(file);
-        if (text && text.length > 50) {
-          return text;
-        }
-        
-        throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF with readable text content, not a scanned image.');
       }
+      
+      setUploadProgress(80);
+      
+      // Clean up the extracted text
+      text = text
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s@.\-+()]/g, ' ')
+        .trim();
+      
+      setUploadProgress(90);
+      
+      // Validate that we have meaningful content
+      const resumeKeywords = ['experience', 'education', 'skills', 'work', 'employment', 'degree', 'university', 'job', 'project', 'email', 'phone'];
+      const hasResumeContent = resumeKeywords.some(keyword => 
+        text.toLowerCase().includes(keyword)
+      );
+      
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 1000);
+      
+      if (!hasResumeContent || text.length < 100) {
+        throw new Error('No readable resume content found in PDF. Please ensure your PDF contains selectable text, not scanned images.');
+      }
+      
+      console.log('PDF text extraction successful, length:', text.length);
+      return text;
+      
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
       setUploadProgress(0);
@@ -121,27 +103,6 @@ const ResumeAnalyzer = () => {
       } else {
         throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF with readable text content.');
       }
-    }
-  };
-
-  const extractTextFallback = async (file: File): Promise<string> => {
-    // Simple fallback method - just read the file as text and try to extract meaningful content
-    try {
-      const text = await file.text();
-      // Look for common resume keywords to validate it's a readable PDF
-      const resumeKeywords = ['experience', 'education', 'skills', 'work', 'employment', 'degree', 'university'];
-      const hasResumeContent = resumeKeywords.some(keyword => 
-        text.toLowerCase().includes(keyword)
-      );
-      
-      if (hasResumeContent && text.length > 100) {
-        return text;
-      }
-      
-      throw new Error('No readable content found');
-    } catch (error) {
-      console.error('Fallback extraction failed:', error);
-      throw new Error('Unable to extract readable text from this PDF');
     }
   };
 
