@@ -1,11 +1,7 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import PDFExport from '../components/PDFExport';
 
 const ExportPage = () => {
-  const [generatedResume, setGeneratedResume] = useState('');
-
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="text-center mb-8">
@@ -13,44 +9,32 @@ const ExportPage = () => {
           <span className="gradient-text">Export Resume</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Export your AI-generated resume in various formats
+          Export functionality has been moved to individual generators for better user experience
         </p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle className="gradient-text">Export Options</CardTitle>
+          <CardTitle className="gradient-text">Export Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4 text-center">
             <p className="text-muted-foreground">
-              Export your AI-generated resume in various formats for different applications.
+              You can now export your resumes directly from:
             </p>
-            <div className="flex flex-wrap gap-4">
-              <PDFExport content={generatedResume} filename="resume" />
-              <button 
-                className="px-4 py-2 border rounded-md hover:bg-muted transition-colors"
-                onClick={() => {
-                  if (generatedResume) {
-                    navigator.clipboard.writeText(generatedResume);
-                  }
-                }}
-              >
-                📋 Copy Text
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Resume Generator</h3>
+                <p className="text-sm text-muted-foreground">
+                  Generate and download ATS-friendly resumes
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Resume Analyzer</h3>
+                <p className="text-sm text-muted-foreground">
+                  Analyze and download improved resume versions
+                </p>
+              </div>
             </div>
-            {generatedResume && (
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <h4 className="font-semibold mb-2">Preview:</h4>
-                <div className="text-sm text-muted-foreground max-h-40 overflow-y-auto">
-                  {generatedResume.substring(0, 300)}...
-                </div>
-              </div>
-            )}
-            {!generatedResume && (
-              <div className="text-center text-muted-foreground py-8">
-                <p>No resume generated yet. Visit the Generator page to create one first.</p>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
