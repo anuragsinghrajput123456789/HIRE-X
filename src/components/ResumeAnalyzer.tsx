@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -29,8 +28,14 @@ import {
 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker with fallback approach
+if (typeof window !== 'undefined') {
+  // Use a more reliable worker configuration
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url
+  ).toString();
+}
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
@@ -45,43 +50,78 @@ const ResumeAnalyzer = () => {
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
       setUploadProgress(10);
+      console.log('Starting PDF text extraction...');
       
       const arrayBuffer = await file.arrayBuffer();
       setUploadProgress(30);
+      console.log('PDF file loaded, size:', arrayBuffer.byteLength);
       
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      // Try to load the PDF with error handling
+      let pdf;
+      try {
+        pdf = await pdfjsLib.getDocument({ 
+          data: arrayBuffer,
+          useSystemFonts: true,
+          disableFontFace: true
+        }).promise;
+      } catch (pdfError) {
+        console.error('PDF loading error:', pdfError);
+        throw new Error('Failed to load PDF. The file might be corrupted or password-protected.');
+      }
+      
       setUploadProgress(50);
+      console.log('PDF loaded successfully, pages:', pdf.numPages);
       
       let fullText = '';
       
       for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + '\n';
-        setUploadProgress(50 + (i / pdf.numPages) * 40);
+        try {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => {
+              if (item.str) {
+                return item.str;
+              }
+              return '';
+            })
+            .join(' ');
+          fullText += pageText + '\n';
+          console.log(`Page ${i} extracted, text length:`, pageText.length);
+          setUploadProgress(50 + (i / pdf.numPages) * 40);
+        } catch (pageError) {
+          console.error(`Error extracting page ${i}:`, pageError);
+          // Continue with other pages even if one fails
+        }
       }
       
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
       
+      console.log('Total extracted text length:', fullText.length);
+      
       if (!fullText.trim() || fullText.trim().length < 50) {
-        throw new Error('No readable text found in PDF. Please ensure your PDF contains selectable text.');
+        throw new Error('No readable text found in PDF. The PDF might contain only images or scanned content. Please ensure your PDF contains selectable text.');
       }
       
       return fullText.trim();
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
       setUploadProgress(0);
-      throw new Error('Failed to extract text from PDF. Please ensure it contains readable text.');
+      
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF with readable text content.');
+      }
     }
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+
+    console.log('File dropped:', file.name, 'Type:', file.type, 'Size:', file.size);
 
     if (file.type !== 'application/pdf') {
       toast({
@@ -105,6 +145,7 @@ const ResumeAnalyzer = () => {
       const text = await extractTextFromPDF(file);
       setResumeText(text);
       setQuotaExceeded(false);
+      console.log('Text extraction successful, length:', text.length);
       toast({
         title: "Resume Uploaded Successfully",
         description: `PDF text extracted successfully! ${text.length} characters found.`,
@@ -113,7 +154,7 @@ const ResumeAnalyzer = () => {
       console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to process PDF file.",
+        description: error instanceof Error ? error.message : "Failed to process PDF file. Please try with a different PDF.",
         variant: "destructive",
       });
     }
@@ -152,7 +193,9 @@ const ResumeAnalyzer = () => {
     setQuotaExceeded(false);
     
     try {
+      console.log('Starting resume analysis...');
       const result = await analyzeResume(resumeText);
+      console.log('Analysis completed successfully:', result);
       setAnalysis(result);
       toast({
         title: "Analysis Complete",
@@ -194,6 +237,7 @@ const ResumeAnalyzer = () => {
     setQuotaExceeded(false);
     
     try {
+      console.log('Starting ATS-friendly resume generation...');
       const prompt = `Based on this resume analysis, generate a complete, corrected and improved ATS-friendly version of the resume:
 
 Original Resume:
@@ -216,6 +260,7 @@ Please provide a complete, professionally formatted resume that addresses all th
 Format the output as a complete, ready-to-use resume.`;
 
       const correctedResume = await generateResumeContent(prompt);
+      console.log('ATS-friendly resume generated successfully');
       setCorrections(correctedResume);
       toast({
         title: "ATS-Friendly Resume Generated!",
