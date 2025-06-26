@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { analyzeResume, generateResumeContent, type AnalysisResult } from '../services/geminiApi';
+import { extractTextFromPDF, extractTextFromWordDoc } from '../services/pdfTextExtractor';
 import { useToast } from '@/hooks/use-toast';
 import { 
   CheckCircle, 
@@ -36,7 +37,7 @@ const ResumeAnalyzer = () => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [correctedResume, setCorrectedResume] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const { toast } = useToast();
 
   const extractTextFromFile = async (file: File): Promise<string> => {
@@ -47,30 +48,32 @@ const ResumeAnalyzer = () => {
       let text = '';
       
       if (file.type === 'application/pdf') {
+        setUploadProgress(30);
         text = await extractTextFromPDF(file);
       } else if (file.type === 'text/plain') {
+        setUploadProgress(30);
         text = await file.text();
       } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-        // For Word documents, we'll extract as much readable text as possible
+        setUploadProgress(30);
         text = await extractTextFromWordDoc(file);
       } else {
+        setUploadProgress(30);
         // Try to read as text for other formats
         text = await file.text();
       }
       
-      setUploadProgress(90);
+      setUploadProgress(70);
       
-      // Clean and validate extracted text
+      // Final text cleaning
       text = text
         .replace(/\s+/g, ' ')
-        .replace(/[^\w\s@.\-+(),:;!?'"]/g, ' ')
         .trim();
       
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
       
-      if (text.length < 50) {
-        throw new Error('Document appears to be empty or contains insufficient content for analysis.');
+      if (text.length < 100) {
+        throw new Error('Document appears to be empty or contains insufficient content for analysis. Please try a different file format.');
       }
       
       console.log('Text extraction successful, length:', text.length);
@@ -81,56 +84,6 @@ const ResumeAnalyzer = () => {
       setUploadProgress(0);
       throw error;
     }
-  };
-
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    let text = '';
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    
-    // Extract readable text from PDF
-    for (let i = 0; i < uint8Array.length - 1; i += 2000) {
-      const chunk = uint8Array.slice(i, i + 2000);
-      const chunkText = decoder.decode(chunk);
-      
-      const readableText = chunkText
-        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (readableText.length > 10) {
-        text += readableText + ' ';
-      }
-    }
-    
-    return text;
-  };
-
-  const extractTextFromWordDoc = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    let text = '';
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    
-    // Extract readable text from Word document
-    for (let i = 0; i < uint8Array.length; i += 1000) {
-      const chunk = uint8Array.slice(i, i + 1000);
-      const chunkText = decoder.decode(chunk);
-      
-      const readableText = chunkText
-        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (readableText.length > 5) {
-        text += readableText + ' ';
-      }
-    }
-    
-    return text;
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -152,9 +105,9 @@ const ResumeAnalyzer = () => {
       const text = await extractTextFromFile(file);
       setResumeText(text);
       setFileName(file.name);
-      setQuotaExceeded(false);
       setCorrectedResume('');
       setAnalysis(null);
+      setIsRetrying(false);
       
       console.log('Text extraction successful, length:', text.length);
       toast({
@@ -195,7 +148,7 @@ const ResumeAnalyzer = () => {
 
     setIsAnalyzing(true);
     setAnalysis(null);
-    setQuotaExceeded(false);
+    setIsRetrying(false);
     
     try {
       console.log('Starting resume analysis...');
@@ -210,22 +163,27 @@ const ResumeAnalyzer = () => {
       
       toast({
         title: "Analysis Complete",
-        description: "Your resume has been analyzed successfully!",
+        description: `Your resume has been analyzed! ATS Score: ${result.atsScore}/100`,
       });
     } catch (error: any) {
       console.error('Analysis error:', error);
       
-      if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
-        setQuotaExceeded(true);
+      const isRetryableError = error.message?.includes('overloaded') || 
+                              error.message?.includes('quota') ||
+                              error.message?.includes('503') ||
+                              error.message?.includes('429');
+      
+      if (isRetryableError) {
+        setIsRetrying(true);
         toast({
-          title: "API Quota Exceeded",
-          description: "The AI service quota has been exceeded. Please try again in a few minutes.",
+          title: "AI Service Temporarily Unavailable",
+          description: "The AI service is overloaded. You can retry in a moment.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Analysis Failed",
-          description: "Please check your internet connection and try again.",
+          description: error.message || "Please check your internet connection and try again.",
           variant: "destructive",
         });
       }
@@ -246,7 +204,6 @@ const ResumeAnalyzer = () => {
     }
 
     setIsGeneratingCorrections(true);
-    setQuotaExceeded(false);
     
     try {
       console.log('Starting ATS-friendly resume generation...');
@@ -285,20 +242,11 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
     } catch (error: any) {
       console.error('Correction generation error:', error);
       
-      if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
-        setQuotaExceeded(true);
-        toast({
-          title: "API Quota Exceeded",
-          description: "The AI service quota has been exceeded. Please try again in a few minutes.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Generation Failed",
-          description: "Failed to generate ATS-friendly resume. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate ATS-friendly resume. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsGeneratingCorrections(false);
     }
@@ -349,7 +297,7 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
               <div className="p-2 bg-primary/10 rounded-full">
                 <File className="w-6 h-6" />
               </div>
-              Upload Your Resume (Multiple Formats Supported)
+              Upload Your Resume (PDF, DOC, DOCX, TXT)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -396,33 +344,33 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
               </div>
             </div>
 
-            {quotaExceeded && (
+            {isRetrying && (
               <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                 <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                   <Clock className="w-5 h-5" />
-                  <p className="text-sm font-medium">API Quota Exceeded</p>
+                  <p className="text-sm font-medium">AI Service Temporarily Unavailable</p>
                 </div>
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                  Please wait a few minutes before trying again.
+                  The AI service is currently overloaded. Please wait a moment and try again.
                 </p>
               </div>
             )}
 
             <Button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || !resumeText.trim() || quotaExceeded}
+              disabled={isAnalyzing || !resumeText.trim()}
               className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
               size="lg"
             >
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Analyzing & Auto-Correcting...
+                  Analyzing Resume...
                 </>
               ) : (
                 <>
                   <Brain className="w-5 h-5 mr-2" />
-                  Analyze & Auto-Correct Resume
+                  Analyze Resume with AI
                 </>
               )}
             </Button>
@@ -528,7 +476,6 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
                 {!correctedResume && !isGeneratingCorrections && (
                   <Button
                     onClick={() => handleGenerateCorrections()}
-                    disabled={quotaExceeded}
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                   >
                     <Zap className="w-4 h-4 mr-2" />
