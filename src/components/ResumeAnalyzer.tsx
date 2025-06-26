@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -23,87 +24,113 @@ import {
   Zap,
   Copy,
   Star,
-  Clock
+  Clock,
+  File
 } from 'lucide-react';
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
+  const [fileName, setFileName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingCorrections, setIsGeneratingCorrections] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [corrections, setCorrections] = useState('');
+  const [correctedResume, setCorrectedResume] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [quotaExceeded, setQuotaExceeded] = useState(false);
   const { toast } = useToast();
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
+  const extractTextFromFile = async (file: File): Promise<string> => {
     try {
       setUploadProgress(10);
-      console.log('Starting PDF text extraction...');
+      console.log('Starting text extraction for file:', file.name, 'Type:', file.type);
       
-      // Use FileReader to read the PDF file as array buffer
-      const arrayBuffer = await file.arrayBuffer();
-      setUploadProgress(30);
-      
-      // Convert to Uint8Array for processing
-      const uint8Array = new Uint8Array(arrayBuffer);
-      setUploadProgress(50);
-      
-      // Try to extract text using simple string extraction
       let text = '';
-      const decoder = new TextDecoder('utf-8', { fatal: false });
       
-      // Convert chunks to text and look for readable content
-      for (let i = 0; i < uint8Array.length - 1; i += 1000) {
-        const chunk = uint8Array.slice(i, i + 1000);
-        const chunkText = decoder.decode(chunk);
-        
-        // Filter out non-printable characters and keep only readable text
-        const readableText = chunkText.replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        
-        if (readableText.length > 10) {
-          text += readableText + ' ';
-        }
+      if (file.type === 'application/pdf') {
+        text = await extractTextFromPDF(file);
+      } else if (file.type === 'text/plain') {
+        text = await file.text();
+      } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+        // For Word documents, we'll extract as much readable text as possible
+        text = await extractTextFromWordDoc(file);
+      } else {
+        // Try to read as text for other formats
+        text = await file.text();
       }
-      
-      setUploadProgress(80);
-      
-      // Clean up the extracted text
-      text = text
-        .replace(/\s+/g, ' ')
-        .replace(/[^\w\s@.\-+()]/g, ' ')
-        .trim();
       
       setUploadProgress(90);
       
-      // Validate that we have meaningful content
-      const resumeKeywords = ['experience', 'education', 'skills', 'work', 'employment', 'degree', 'university', 'job', 'project', 'email', 'phone'];
-      const hasResumeContent = resumeKeywords.some(keyword => 
-        text.toLowerCase().includes(keyword)
-      );
+      // Clean and validate extracted text
+      text = text
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s@.\-+(),:;!?'"]/g, ' ')
+        .trim();
       
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
       
-      if (!hasResumeContent || text.length < 100) {
-        throw new Error('No readable resume content found in PDF. Please ensure your PDF contains selectable text, not scanned images.');
+      if (text.length < 50) {
+        throw new Error('Document appears to be empty or contains insufficient content for analysis.');
       }
       
-      console.log('PDF text extraction successful, length:', text.length);
+      console.log('Text extraction successful, length:', text.length);
       return text;
       
     } catch (error) {
-      console.error('Error extracting text from PDF:', error);
+      console.error('Error extracting text from file:', error);
       setUploadProgress(0);
+      throw error;
+    }
+  };
+
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    let text = '';
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    
+    // Extract readable text from PDF
+    for (let i = 0; i < uint8Array.length - 1; i += 2000) {
+      const chunk = uint8Array.slice(i, i + 2000);
+      const chunkText = decoder.decode(chunk);
       
-      if (error instanceof Error) {
-        throw error;
-      } else {
-        throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF with readable text content.');
+      const readableText = chunkText
+        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (readableText.length > 10) {
+        text += readableText + ' ';
       }
     }
+    
+    return text;
+  };
+
+  const extractTextFromWordDoc = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    let text = '';
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    
+    // Extract readable text from Word document
+    for (let i = 0; i < uint8Array.length; i += 1000) {
+      const chunk = uint8Array.slice(i, i + 1000);
+      const chunkText = decoder.decode(chunk);
+      
+      const readableText = chunkText
+        .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (readableText.length > 5) {
+        text += readableText + ' ';
+      }
+    }
+    
+    return text;
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -112,38 +139,33 @@ const ResumeAnalyzer = () => {
 
     console.log('File dropped:', file.name, 'Type:', file.type, 'Size:', file.size);
 
-    if (file.type !== 'application/pdf') {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a PDF file only.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File Too Large",
-        description: "Please upload a PDF file smaller than 10MB.",
+        description: "Please upload a file smaller than 10MB.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const text = await extractTextFromPDF(file);
+      const text = await extractTextFromFile(file);
       setResumeText(text);
+      setFileName(file.name);
       setQuotaExceeded(false);
+      setCorrectedResume('');
+      setAnalysis(null);
+      
       console.log('Text extraction successful, length:', text.length);
       toast({
         title: "Resume Uploaded Successfully",
-        description: `PDF text extracted successfully! ${text.length} characters found.`,
+        description: `Document processed successfully! ${text.length} characters extracted.`,
       });
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to process PDF file. Please try with a different PDF.",
+        description: error instanceof Error ? error.message : "Failed to process document. Please try with a different file.",
         variant: "destructive",
       });
     }
@@ -152,7 +174,10 @@ const ResumeAnalyzer = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf']
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/plain': ['.txt']
     },
     multiple: false,
     maxSize: 10 * 1024 * 1024
@@ -161,17 +186,8 @@ const ResumeAnalyzer = () => {
   const handleAnalyze = async () => {
     if (!resumeText.trim()) {
       toast({
-        title: "No Resume Text",
-        description: "Please upload a PDF resume to analyze.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (resumeText.trim().length < 50) {
-      toast({
-        title: "Resume Too Short",
-        description: "Please provide a more detailed resume for analysis.",
+        title: "No Resume Content",
+        description: "Please upload a resume document to analyze.",
         variant: "destructive",
       });
       return;
@@ -186,6 +202,12 @@ const ResumeAnalyzer = () => {
       const result = await analyzeResume(resumeText);
       console.log('Analysis completed successfully:', result);
       setAnalysis(result);
+      
+      // Automatically generate corrections if score is below 80
+      if (result.atsScore < 80) {
+        await handleGenerateCorrections(result);
+      }
+      
       toast({
         title: "Analysis Complete",
         description: "Your resume has been analyzed successfully!",
@@ -197,7 +219,7 @@ const ResumeAnalyzer = () => {
         setQuotaExceeded(true);
         toast({
           title: "API Quota Exceeded",
-          description: "The AI service quota has been exceeded. Please try again in a few minutes or upgrade your API plan.",
+          description: "The AI service quota has been exceeded. Please try again in a few minutes.",
           variant: "destructive",
         });
       } else {
@@ -212,8 +234,9 @@ const ResumeAnalyzer = () => {
     }
   };
 
-  const handleGenerateCorrections = async () => {
-    if (!analysis) {
+  const handleGenerateCorrections = async (analysisResult?: AnalysisResult) => {
+    const currentAnalysis = analysisResult || analysis;
+    if (!currentAnalysis) {
       toast({
         title: "No Analysis Available",
         description: "Please analyze your resume first.",
@@ -233,24 +256,28 @@ Original Resume:
 ${resumeText}
 
 Analysis Results:
-- ATS Score: ${analysis.atsScore}/100
-- Missing Keywords: ${analysis.missingKeywords.join(', ')}
-- Format Suggestions: ${analysis.formatSuggestions.join(', ')}
-- Improvements: ${analysis.improvements.join(', ')}
+- ATS Score: ${currentAnalysis.atsScore}/100
+- Missing Keywords: ${currentAnalysis.missingKeywords.join(', ')}
+- Format Suggestions: ${currentAnalysis.formatSuggestions.join(', ')}
+- Improvements: ${currentAnalysis.improvements.join(', ')}
 
-Please provide a complete, professionally formatted resume that addresses all the issues identified. Make it highly ATS-friendly with:
+Please provide a complete, professionally formatted resume that addresses ALL the issues identified. Make it highly ATS-friendly with:
+
 1. All missing keywords naturally integrated
 2. Professional formatting with clear sections
 3. Quantifiable achievements with metrics
 4. Strong action verbs throughout
 5. Industry-standard terminology
 6. Proper ATS-readable structure
+7. Fixed formatting issues
+8. Enhanced content quality
 
-Format the output as a complete, ready-to-use resume.`;
+Format the output as a complete, ready-to-use resume that would score 90+ on ATS systems.`;
 
-      const correctedResume = await generateResumeContent(prompt);
+      const correctedResumeText = await generateResumeContent(prompt);
       console.log('ATS-friendly resume generated successfully');
-      setCorrections(correctedResume);
+      setCorrectedResume(correctedResumeText);
+      
       toast({
         title: "ATS-Friendly Resume Generated!",
         description: "Your improved resume is ready for download.",
@@ -262,7 +289,7 @@ Format the output as a complete, ready-to-use resume.`;
         setQuotaExceeded(true);
         toast({
           title: "API Quota Exceeded",
-          description: "The AI service quota has been exceeded. Please try again in a few minutes or upgrade your API plan.",
+          description: "The AI service quota has been exceeded. Please try again in a few minutes.",
           variant: "destructive",
         });
       } else {
@@ -277,27 +304,27 @@ Format the output as a complete, ready-to-use resume.`;
     }
   };
 
-  const downloadATSResume = () => {
-    if (!corrections) return;
+  const downloadCorrectedResume = () => {
+    if (!correctedResume) return;
     
     const element = document.createElement('a');
-    const file = new Blob([corrections], { type: 'text/plain' });
+    const file = new Blob([correctedResume], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = 'ATS_Friendly_Resume.txt';
+    element.download = `ATS_Optimized_${fileName || 'Resume'}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
     
     toast({
       title: "Resume Downloaded",
-      description: "Your ATS-friendly resume has been downloaded successfully!",
+      description: "Your ATS-optimized resume has been downloaded successfully!",
     });
   };
 
   const getScoreIcon = (score: number) => {
-    if (score >= 80) return <Award className="w-8 h-8 text-green-500 animate-pulse" />;
-    if (score >= 60) return <Target className="w-8 h-8 text-yellow-500 animate-bounce" />;
-    return <AlertCircle className="w-8 h-8 text-red-500 animate-pulse" />;
+    if (score >= 80) return <Award className="w-8 h-8 text-green-500" />;
+    if (score >= 60) return <Target className="w-8 h-8 text-yellow-500" />;
+    return <AlertCircle className="w-8 h-8 text-red-500" />;
   };
 
   const getScoreColor = (score: number) => {
@@ -312,23 +339,17 @@ Format the output as a complete, ready-to-use resume.`;
     return 'ATS Rejected - Needs Improvement';
   };
 
-  const getScoreMessage = (score: number) => {
-    if (score >= 80) return 'Your resume is well-optimized for ATS systems!';
-    if (score >= 60) return 'Your resume has potential but needs some improvements.';
-    return 'Your resume needs significant improvements to pass ATS filters.';
-  };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
       <div className="space-y-6">
         {/* Upload Section */}
-        <Card className="animate-fade-in border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300">
+        <Card className="border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300">
           <CardHeader>
             <CardTitle className="gradient-text flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-full">
-                <FileText className="w-6 h-6" />
+                <File className="w-6 h-6" />
               </div>
-              Upload Your Resume (PDF Only)
+              Upload Your Resume (Multiple Formats Supported)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -342,33 +363,33 @@ Format the output as a complete, ready-to-use resume.`;
             >
               <input {...getInputProps()} />
               <div className="space-y-4">
-                <div className="text-6xl animate-bounce">
+                <div className="text-6xl">
                   {isDragActive ? (
                     <Download className="w-16 h-16 mx-auto text-primary animate-pulse" />
                   ) : (
-                    <Upload className="w-16 h-16 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
+                    <Upload className="w-16 h-16 mx-auto text-muted-foreground" />
                   )}
                 </div>
                 <div>
                   <p className="text-xl font-semibold mb-2">
                     {isDragActive
                       ? 'Drop your resume here!'
-                      : 'Drag & drop your resume (PDF only)'}
+                      : 'Drag & drop your resume'}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    or click to select a file • Max size: 10MB
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Supports PDF, DOC, DOCX, TXT • Max size: 10MB
                   </p>
                   {resumeText && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
+                    <div className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
                       <CheckCircle className="w-3 h-3" />
-                      Resume uploaded ({resumeText.length} characters)
-                    </p>
+                      {fileName} uploaded ({resumeText.length} characters)
+                    </div>
                   )}
                 </div>
                 
                 {uploadProgress > 0 && (
-                  <div className="space-y-2 animate-fade-in">
-                    <p className="text-sm font-medium">Processing PDF...</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Processing document...</p>
                     <Progress value={uploadProgress} className="w-full" />
                   </div>
                 )}
@@ -382,7 +403,7 @@ Format the output as a complete, ready-to-use resume.`;
                   <p className="text-sm font-medium">API Quota Exceeded</p>
                 </div>
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                  Please wait a few minutes before trying again, or upgrade your Gemini API plan for higher quotas.
+                  Please wait a few minutes before trying again.
                 </p>
               </div>
             )}
@@ -390,18 +411,18 @@ Format the output as a complete, ready-to-use resume.`;
             <Button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !resumeText.trim() || quotaExceeded}
-              className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
               size="lg"
             >
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Analyzing Resume...
+                  Analyzing & Auto-Correcting...
                 </>
               ) : (
                 <>
                   <Brain className="w-5 h-5 mr-2" />
-                  Analyze Resume with AI
+                  Analyze & Auto-Correct Resume
                 </>
               )}
             </Button>
@@ -411,32 +432,29 @@ Format the output as a complete, ready-to-use resume.`;
 
       {/* Analysis Results */}
       <div className="space-y-6">
-        <Card className="animate-fade-in border-2 border-primary/10">
+        <Card className="border-2 border-primary/10">
           <CardHeader>
             <CardTitle className="gradient-text flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-full">
                 <Sparkles className="w-6 h-6" />
               </div>
-              AI Analysis Results
+              AI Analysis & Correction Results
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analysis ? (
               <div className="space-y-6">
                 {/* ATS Score */}
-                <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-xl text-white animate-scale-in shadow-lg`}>
+                <div className={`text-center p-6 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-xl text-white shadow-lg`}>
                   <div className="flex items-center justify-center mb-4">
                     {getScoreIcon(analysis.atsScore)}
                   </div>
                   <h3 className="text-xl font-bold mb-2">ATS Compatibility Score</h3>
-                  <div className="text-5xl font-bold mb-3 animate-fade-in">
+                  <div className="text-4xl font-bold mb-3">
                     {analysis.atsScore}/100
                   </div>
                   <p className="text-lg font-semibold mb-2">
                     {getScoreLabel(analysis.atsScore)}
-                  </p>
-                  <p className="text-sm opacity-90">
-                    {getScoreMessage(analysis.atsScore)}
                   </p>
                   <div className="mt-4">
                     <Progress
@@ -446,88 +464,89 @@ Format the output as a complete, ready-to-use resume.`;
                   </div>
                 </div>
 
-                {/* ATS Improvement Section */}
-                {analysis.atsScore < 90 && (
-                  <Card className="border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+                {/* Auto-Correction Status */}
+                {(isGeneratingCorrections || correctedResume) && (
+                  <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
                     <CardHeader>
-                      <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                      <CardTitle className="text-green-700 dark:text-green-300 flex items-center gap-2">
                         <Star className="w-5 h-5" />
-                        Generate ATS-Friendly Resume
+                        {isGeneratingCorrections ? 'Generating ATS-Optimized Resume...' : 'ATS-Optimized Resume Ready!'}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-orange-600 dark:text-orange-400">
-                        Let our AI create an optimized version of your resume that passes ATS filters and impresses recruiters!
-                      </p>
-                      
-                      <Button
-                        onClick={handleGenerateCorrections}
-                        disabled={isGeneratingCorrections || quotaExceeded}
-                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
-                      >
-                        {isGeneratingCorrections ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Generating ATS-Friendly Resume...
-                          </>
-                        ) : (
-                          <>
-                            <Zap className="w-4 h-4 mr-2" />
-                            Generate ATS-Friendly Resume
-                          </>
-                        )}
-                      </Button>
+                      {isGeneratingCorrections ? (
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 animate-spin text-green-600" />
+                          <p className="text-sm text-green-600 dark:text-green-400">
+                            AI is automatically correcting your resume for maximum ATS compatibility...
+                          </p>
+                        </div>
+                      ) : correctedResume ? (
+                        <div className="space-y-4">
+                          <p className="text-sm text-green-600 dark:text-green-400">
+                            Your ATS-optimized resume has been generated and is ready for download!
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <Button
+                              onClick={downloadCorrectedResume}
+                              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Resume
+                            </Button>
+                            
+                            <Button
+                              onClick={() => {
+                                navigator.clipboard.writeText(correctedResume);
+                                toast({
+                                  title: "Copied to Clipboard",
+                                  description: "The optimized resume has been copied.",
+                                });
+                              }}
+                              variant="outline"
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Text
+                            </Button>
+                            
+                            <Button
+                              onClick={() => handleGenerateCorrections()}
+                              variant="ghost"
+                              disabled={isGeneratingCorrections}
+                            >
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Regenerate
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Manual Correction Button */}
+                {!correctedResume && !isGeneratingCorrections && (
                   <Button
-                    onClick={handleGenerateCorrections}
-                    disabled={isGeneratingCorrections || quotaExceeded}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-lg"
+                    onClick={() => handleGenerateCorrections()}
+                    disabled={quotaExceeded}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                   >
-                    {isGeneratingCorrections ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-4 h-4 mr-2" />
-                        AI Improve Resume
-                      </>
-                    )}
+                    <Zap className="w-4 h-4 mr-2" />
+                    Generate ATS-Optimized Resume
                   </Button>
-                  
-                  <Button
-                    onClick={handleAnalyze}
-                    variant="outline"
-                    disabled={isAnalyzing || quotaExceeded}
-                    className="hover:scale-[1.02] transition-all duration-300"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Re-analyze
-                  </Button>
-                </div>
+                )}
 
                 {/* Analysis Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Missing Keywords */}
-                  <div className="animate-slide-in-right">
+                  <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-600 dark:text-red-400">
                       <XCircle className="w-5 h-5" />
                       Missing Keywords ({analysis.missingKeywords.length})
                     </h4>
                     <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                       {analysis.missingKeywords.map((keyword, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="destructive" 
-                          className="animate-fade-in hover:scale-105 transition-transform text-xs"
-                          style={{animationDelay: `${index * 0.1}s`}}
-                        >
+                        <Badge key={index} variant="destructive" className="text-xs">
                           {keyword}
                         </Badge>
                       ))}
@@ -535,19 +554,14 @@ Format the output as a complete, ready-to-use resume.`;
                   </div>
 
                   {/* Matching Job Roles */}
-                  <div className="animate-slide-in-right">
+                  <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Target className="w-5 h-5" />
                       Matching Roles ({analysis.matchingJobRoles.length})
                     </h4>
                     <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                       {analysis.matchingJobRoles.map((role, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="outline" 
-                          className="animate-fade-in hover:scale-105 transition-transform text-xs border-blue-200 text-blue-700 dark:border-blue-700 dark:text-blue-300"
-                          style={{animationDelay: `${index * 0.1}s`}}
-                        >
+                        <Badge key={index} variant="outline" className="text-xs border-blue-200 text-blue-700 dark:border-blue-700 dark:text-blue-300">
                           {role}
                         </Badge>
                       ))}
@@ -557,14 +571,14 @@ Format the output as a complete, ready-to-use resume.`;
 
                 {/* Suggestions */}
                 <div className="space-y-4">
-                  <div className="animate-slide-in-right">
+                  <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
                       <AlertCircle className="w-5 h-5" />
                       Format Suggestions
                     </h4>
                     <ul className="space-y-2 max-h-40 overflow-y-auto">
                       {analysis.formatSuggestions.map((suggestion, index) => (
-                        <li key={index} className="flex items-start gap-3 animate-fade-in p-2 rounded-lg hover:bg-accent/50 transition-colors" style={{animationDelay: `${index * 0.1}s`}}>
+                        <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
                           <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
                           <span className="text-sm">{suggestion}</span>
                         </li>
@@ -572,14 +586,14 @@ Format the output as a complete, ready-to-use resume.`;
                     </ul>
                   </div>
 
-                  <div className="animate-slide-in-right">
+                  <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
                       <CheckCircle className="w-5 h-5" />
                       Recommended Improvements
                     </h4>
                     <ul className="space-y-2 max-h-40 overflow-y-auto">
                       {analysis.improvements.map((improvement, index) => (
-                        <li key={index} className="flex items-start gap-3 animate-fade-in p-2 rounded-lg hover:bg-accent/50 transition-colors" style={{animationDelay: `${index * 0.1}s`}}>
+                        <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
                           <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                           <span className="text-sm">{improvement}</span>
                         </li>
@@ -589,12 +603,12 @@ Format the output as a complete, ready-to-use resume.`;
                 </div>
               </div>
             ) : (
-              <div className="text-center text-muted-foreground py-12 animate-pulse">
+              <div className="text-center text-muted-foreground py-12">
                 <div className="space-y-4">
                   <Brain className="w-20 h-20 mx-auto opacity-30" />
                   <div>
                     <p className="text-xl font-medium">Ready for AI Analysis</p>
-                    <p className="text-sm mt-2">Upload your resume PDF and click "Analyze Resume" to get started</p>
+                    <p className="text-sm mt-2">Upload your resume (PDF, DOC, DOCX, TXT) and get instant analysis with automatic corrections</p>
                   </div>
                 </div>
               </div>
@@ -602,61 +616,23 @@ Format the output as a complete, ready-to-use resume.`;
           </CardContent>
         </Card>
 
-        {/* AI Corrections Section */}
-        {corrections && (
-          <Card className="animate-fade-in border-2 border-green-200 dark:border-green-800">
+        {/* Corrected Resume Preview */}
+        {correctedResume && (
+          <Card className="border-2 border-green-200 dark:border-green-800">
             <CardHeader>
               <CardTitle className="gradient-text flex items-center gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
                   <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                Your ATS-Friendly Resume is Ready!
+                Your ATS-Optimized Resume Preview
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
-                  <h4 className="font-semibold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Your ATS-Optimized Resume:
-                  </h4>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap text-sm bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto font-sans">{corrections}</pre>
+                    <pre className="whitespace-pre-wrap text-sm bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto font-sans">{correctedResume}</pre>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(corrections);
-                      toast({
-                        title: "Copied to Clipboard",
-                        description: "The ATS-friendly resume has been copied to your clipboard.",
-                      });
-                    }}
-                    variant="outline"
-                    className="hover:scale-[1.02] transition-transform"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Text
-                  </Button>
-                  
-                  <Button
-                    onClick={downloadATSResume}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-[1.02] transition-all text-white"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Resume
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setCorrections('')}
-                    variant="ghost"
-                    className="hover:scale-105 transition-transform"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Clear
-                  </Button>
                 </div>
               </div>
             </CardContent>
