@@ -207,55 +207,73 @@ const ResumeAnalyzer = () => {
     
     try {
       console.log('Starting ATS-friendly resume generation...');
-      const prompt = `Based on this resume analysis, generate a complete, corrected and improved ATS-friendly version of the resume with professional formatting:
+      const prompt = `You are an expert resume writer and ATS optimization specialist. Your task is to create an improved, ATS-friendly version of the provided resume while PRESERVING ALL ORIGINAL INFORMATION AND DETAILS.
 
-Original Resume:
+CRITICAL INSTRUCTIONS:
+1. PRESERVE ALL ORIGINAL CONTENT - Keep every detail, experience, education, project, skill, and achievement from the original resume
+2. DO NOT invent or add fake information
+3. Only IMPROVE formatting, wording, and ATS compatibility
+4. Keep the same chronological order and structure
+5. Enhance existing bullet points with better action verbs and quantifiable metrics where possible
+
+ORIGINAL RESUME TO IMPROVE:
 ${resumeText}
 
-Analysis Results:
-- ATS Score: ${currentAnalysis.atsScore}/100
-- Missing Keywords: ${currentAnalysis.missingKeywords.join(', ')}
-- Format Suggestions: ${currentAnalysis.formatSuggestions.join(', ')}
-- Improvements: ${currentAnalysis.improvements.join(', ')}
+ANALYSIS FINDINGS TO ADDRESS:
+- Current ATS Score: ${currentAnalysis.atsScore}/100 (Target: 90+)
+- Missing Keywords to Add: ${currentAnalysis.missingKeywords.join(', ')}
+- Format Issues to Fix: ${currentAnalysis.formatSuggestions.join(', ')}
+- Content Improvements Needed: ${currentAnalysis.improvements.join(', ')}
 
-Please provide a complete, professionally formatted resume that addresses ALL the issues identified. Structure it exactly like this format:
+REQUIRED IMPROVEMENTS:
+1. **ATS Optimization**: Integrate missing keywords naturally into existing content
+2. **Format Enhancement**: Use clean, ATS-friendly formatting with proper headers
+3. **Content Strengthening**: Improve existing bullet points with strong action verbs
+4. **Structure Improvement**: Ensure logical flow and readability
 
-[FULL NAME]
-[Phone Number] | [Email] | [Location]
-[LinkedIn] | [Portfolio/GitHub]
+OUTPUT FORMAT - Create a complete, professionally formatted resume following this EXACT structure:
+
+[CANDIDATE'S FULL NAME]
+[Phone] | [Email] | [Location]
+[LinkedIn URL] | [Portfolio/GitHub URL]
 
 PROFESSIONAL SUMMARY
-[3-4 lines compelling summary with relevant keywords]
+[2-3 lines summarizing the candidate's experience and key strengths with relevant keywords]
+
+TECHNICAL SKILLS
+[Organize existing skills into relevant categories with added missing keywords]
+
+PROFESSIONAL EXPERIENCE
+[Job Title] - [Company Name] | [Location] | [Dates]
+• [Enhanced bullet point with action verb + achievement + impact/metric]
+• [Enhanced bullet point with action verb + achievement + impact/metric]
+• [Enhanced bullet point with action verb + achievement + impact/metric]
+
+[Continue for all positions from original resume]
 
 EDUCATION
-[Degree Name] - [Institution Name]                                [Graduation Date]
-[Additional education details, GPA if relevant, coursework]
+[Degree] - [Institution] | [Location] | [Graduation Date]
+[Include GPA, honors, relevant coursework if mentioned in original]
 
-SKILLS
-Programming Languages: [Languages]
-Web Development Technologies: [Technologies]
-Design Skills: [Skills]
-Platforms: [Platforms]
+PROJECTS (if applicable)
+[Project Name] | [Technologies Used] | [Date]
+• [Enhanced description with technical details and outcomes]
 
-PROJECTS
-[Project Name] - [Tech Stack]                                    [Date]
-• [Achievement with metrics and impact]
-• [Technical implementation details]
-• [Results and outcomes]
+CERTIFICATIONS (if applicable)
+[List all certifications from original resume]
 
-[Additional projects with same format]
+ADDITIONAL SECTIONS (if applicable)
+[Include any other sections from original resume like Languages, Publications, etc.]
 
-Make it highly ATS-friendly with:
-1. Clean, professional formatting
-2. All missing keywords naturally integrated
-3. Quantifiable achievements with metrics
-4. Strong action verbs throughout
-5. Industry-standard terminology
-6. Proper ATS-readable structure
-7. Clear section headers
-8. Consistent formatting
+FORMATTING REQUIREMENTS:
+- Use bullet points consistently
+- Employ strong action verbs (Led, Developed, Implemented, Optimized, etc.)
+- Include quantifiable achievements where possible
+- Ensure consistent date formatting
+- Use industry-standard section headers
+- Maintain clean, professional layout
 
-Format the output as a complete, ready-to-use resume that would score 90+ on ATS systems.`;
+Remember: ENHANCE the existing content, don't replace it. Every detail from the original resume must be preserved and improved.`;
 
       const correctedResumeText = await generateResumeContent(prompt);
       console.log('ATS-friendly resume generated successfully');
