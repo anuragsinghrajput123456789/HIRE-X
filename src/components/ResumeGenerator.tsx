@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -11,13 +10,21 @@ import BasicInfoForm from './forms/BasicInfoForm';
 import EducationForm from './forms/EducationForm';
 import ExperienceForm from './forms/ExperienceForm';
 import AdditionalInfoForm from './forms/AdditionalInfoForm';
+import CustomSectionsForm from './forms/CustomSectionsForm';
 import { FormData, ResumeData } from '../types/resumeTypes';
 import html2pdf from 'html2pdf.js';
+
+interface CustomSection {
+  id: string;
+  title: string;
+  content: string;
+}
 
 const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: string) => void }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedData, setGeneratedData] = useState<ResumeData | null>(null);
   const [atsOptimizedContent, setAtsOptimizedContent] = useState<string>('');
+  const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const { toast } = useToast();
 
   const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -117,6 +124,11 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
             <ExperienceForm register={register} control={control} />
             <Separator />
             <AdditionalInfoForm register={register} control={control} />
+            <Separator />
+            <CustomSectionsForm 
+              customSections={customSections}
+              onSectionsChange={setCustomSections}
+            />
 
             <Button
               type="submit"
@@ -313,6 +325,22 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                     </div>
                   )}
                 </div>
+
+                {/* Custom Sections */}
+                {customSections.length > 0 && (
+                  <div className="space-y-6">
+                    {customSections.map((section) => (
+                      <div key={section.id} className="mb-6">
+                        <h2 className="text-lg font-bold text-gray-900 border-b-2 border-gray-300 mb-3 uppercase tracking-wide">
+                          {section.title}
+                        </h2>
+                        <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                          {section.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ) : (

@@ -9,7 +9,6 @@ import {
   Search, 
   Target, 
   Mail, 
-  Download, 
   MessageCircle,
   Sparkles,
   Brain
@@ -25,7 +24,6 @@ const Navbar = () => {
     { path: '/analyzer', label: 'Analyzer', icon: Search, description: 'Analyze & Improve' },
     { path: '/job-match', label: 'Job Match', icon: Target, description: 'Find Perfect Jobs' },
     { path: '/cold-email', label: 'Cold Email', icon: Mail, description: 'Write Emails' },
-    { path: '/export', label: 'Export', icon: Download, description: 'Download Resume' },
     { path: '/chat', label: 'AI Chat', icon: MessageCircle, description: 'Career Assistant' }
   ];
 
