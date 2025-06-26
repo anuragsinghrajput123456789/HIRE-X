@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -28,6 +27,7 @@ import {
   Clock,
   File
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
@@ -183,7 +183,7 @@ const ResumeAnalyzer = () => {
       } else {
         toast({
           title: "Analysis Failed",
-          description: error.message || "Please check your internet connection and try again.",
+        description: error.message || "Please check your internet connection and try again.",
           variant: "destructive",
         });
       }
@@ -207,7 +207,7 @@ const ResumeAnalyzer = () => {
     
     try {
       console.log('Starting ATS-friendly resume generation...');
-      const prompt = `Based on this resume analysis, generate a complete, corrected and improved ATS-friendly version of the resume:
+      const prompt = `Based on this resume analysis, generate a complete, corrected and improved ATS-friendly version of the resume with professional formatting:
 
 Original Resume:
 ${resumeText}
@@ -218,16 +218,42 @@ Analysis Results:
 - Format Suggestions: ${currentAnalysis.formatSuggestions.join(', ')}
 - Improvements: ${currentAnalysis.improvements.join(', ')}
 
-Please provide a complete, professionally formatted resume that addresses ALL the issues identified. Make it highly ATS-friendly with:
+Please provide a complete, professionally formatted resume that addresses ALL the issues identified. Structure it exactly like this format:
 
-1. All missing keywords naturally integrated
-2. Professional formatting with clear sections
+[FULL NAME]
+[Phone Number] | [Email] | [Location]
+[LinkedIn] | [Portfolio/GitHub]
+
+PROFESSIONAL SUMMARY
+[3-4 lines compelling summary with relevant keywords]
+
+EDUCATION
+[Degree Name] - [Institution Name]                                [Graduation Date]
+[Additional education details, GPA if relevant, coursework]
+
+SKILLS
+Programming Languages: [Languages]
+Web Development Technologies: [Technologies]
+Design Skills: [Skills]
+Platforms: [Platforms]
+
+PROJECTS
+[Project Name] - [Tech Stack]                                    [Date]
+• [Achievement with metrics and impact]
+• [Technical implementation details]
+• [Results and outcomes]
+
+[Additional projects with same format]
+
+Make it highly ATS-friendly with:
+1. Clean, professional formatting
+2. All missing keywords naturally integrated
 3. Quantifiable achievements with metrics
 4. Strong action verbs throughout
 5. Industry-standard terminology
 6. Proper ATS-readable structure
-7. Fixed formatting issues
-8. Enhanced content quality
+7. Clear section headers
+8. Consistent formatting
 
 Format the output as a complete, ready-to-use resume that would score 90+ on ATS systems.`;
 
@@ -237,7 +263,7 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
       
       toast({
         title: "ATS-Friendly Resume Generated!",
-        description: "Your improved resume is ready for download.",
+        description: "Your improved resume is ready for download as PDF.",
       });
     } catch (error: any) {
       console.error('Correction generation error:', error);
@@ -252,21 +278,88 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
     }
   };
 
-  const downloadCorrectedResume = () => {
+  const downloadCorrectedResumeAsPDF = () => {
     if (!correctedResume) return;
     
-    const element = document.createElement('a');
-    const file = new Blob([correctedResume], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `ATS_Optimized_${fileName || 'Resume'}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    toast({
-      title: "Resume Downloaded",
-      description: "Your ATS-optimized resume has been downloaded successfully!",
-    });
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxWidth = pageWidth - 2 * margin;
+      let currentY = margin;
+
+      // Parse the resume content
+      const lines = correctedResume.split('\n');
+      
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) {
+          currentY += 5;
+          return;
+        }
+
+        // Check if we need a new page
+        if (currentY > 270) {
+          doc.addPage();
+          currentY = margin;
+        }
+
+        // Style different sections
+        if (index === 0 || trimmedLine.match(/^[A-Z\s]+$/)) {
+          // Name or section headers
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'bold');
+          currentY += 8;
+        } else if (trimmedLine.includes('|') && index < 5) {
+          // Contact info
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          currentY += 2;
+        } else if (trimmedLine.startsWith('•')) {
+          // Bullet points
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          currentY += 2;
+        } else {
+          // Regular text
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          currentY += 3;
+        }
+
+        // Split long lines
+        const splitText = doc.splitTextToSize(trimmedLine, maxWidth);
+        
+        if (Array.isArray(splitText)) {
+          splitText.forEach((textLine: string) => {
+            if (currentY > 270) {
+              doc.addPage();
+              currentY = margin;
+            }
+            doc.text(textLine, margin, currentY);
+            currentY += 5;
+          });
+        } else {
+          doc.text(splitText, margin, currentY);
+          currentY += 5;
+        }
+      });
+
+      // Save the PDF
+      doc.save(`ATS_Optimized_${fileName || 'Resume'}.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your ATS-optimized resume has been downloaded as PDF successfully!",
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "Failed to generate PDF. Please try downloading as text instead.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getScoreIcon = (score: number) => {
@@ -412,7 +505,7 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
                   </div>
                 </div>
 
-                {/* Auto-Correction Status */}
+                {/* Auto-Correction Download Section */}
                 {(isGeneratingCorrections || correctedResume) && (
                   <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
                     <CardHeader>
@@ -432,15 +525,15 @@ Format the output as a complete, ready-to-use resume that would score 90+ on ATS
                       ) : correctedResume ? (
                         <div className="space-y-4">
                           <p className="text-sm text-green-600 dark:text-green-400">
-                            Your ATS-optimized resume has been generated and is ready for download!
+                            Your ATS-optimized resume has been generated and is ready for download as PDF!
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <Button
-                              onClick={downloadCorrectedResume}
+                              onClick={downloadCorrectedResumeAsPDF}
                               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
                             >
                               <Download className="w-4 h-4 mr-2" />
-                              Download Resume
+                              Download PDF
                             </Button>
                             
                             <Button
