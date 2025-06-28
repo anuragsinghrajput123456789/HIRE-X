@@ -21,17 +21,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen gradient-bg w-full">
+        <div className="min-h-screen bg-background">
           <Navbar />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/generator" element={<GeneratorPage />} />
-            <Route path="/analyzer" element={<AnalyzerPage />} />
-            <Route path="/job-match" element={<JobMatchPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/cold-email" element={<ColdEmailPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <main className="relative">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/generator" element={<GeneratorPage />} />
+              <Route path="/analyzer" element={<AnalyzerPage />} />
+              <Route path="/job-match" element={<JobMatchPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/cold-email" element={<ColdEmailPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
         </div>
       </BrowserRouter>
     </TooltipProvider>
