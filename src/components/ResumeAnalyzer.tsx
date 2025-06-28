@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { analyzeResume, generateResumeContent, type AnalysisResult } from '../services/geminiApi';
+import { analyzeResume, type AnalysisResult } from '../services/geminiApi';
 import { extractTextFromPDF, extractTextFromWordDoc } from '../services/pdfTextExtractor';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -14,28 +15,26 @@ import {
   AlertCircle, 
   FileText, 
   Sparkles, 
-  Download, 
   Upload, 
   Loader2,
   Brain,
   Target,
   Award,
   RefreshCw,
-  Zap,
-  Copy,
-  Star,
   Clock,
-  File
+  File,
+  TrendingUp,
+  Lightbulb,
+  Plus,
+  Minus,
+  BookOpen
 } from 'lucide-react';
-import jsPDF from 'jspdf';
 
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
   const [fileName, setFileName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isGeneratingCorrections, setIsGeneratingCorrections] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [correctedResume, setCorrectedResume] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const { toast } = useToast();
@@ -105,7 +104,6 @@ const ResumeAnalyzer = () => {
       const text = await extractTextFromFile(file);
       setResumeText(text);
       setFileName(file.name);
-      setCorrectedResume('');
       setAnalysis(null);
       setIsRetrying(false);
       
@@ -156,11 +154,6 @@ const ResumeAnalyzer = () => {
       console.log('Analysis completed successfully:', result);
       setAnalysis(result);
       
-      // Automatically generate corrections if score is below 80
-      if (result.atsScore < 80) {
-        await handleGenerateCorrections(result);
-      }
-      
       toast({
         title: "Analysis Complete",
         description: `Your resume has been analyzed! ATS Score: ${result.atsScore}/100`,
@@ -189,194 +182,6 @@ const ResumeAnalyzer = () => {
       }
     } finally {
       setIsAnalyzing(false);
-    }
-  };
-
-  const handleGenerateCorrections = async (analysisResult?: AnalysisResult) => {
-    const currentAnalysis = analysisResult || analysis;
-    if (!currentAnalysis) {
-      toast({
-        title: "No Analysis Available",
-        description: "Please analyze your resume first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingCorrections(true);
-    
-    try {
-      console.log('Starting ATS-friendly resume generation...');
-      const prompt = `You are an expert resume writer and ATS optimization specialist. Your task is to create an improved, ATS-friendly version of the provided resume while PRESERVING ALL ORIGINAL INFORMATION AND DETAILS.
-
-CRITICAL INSTRUCTIONS:
-1. PRESERVE ALL ORIGINAL CONTENT - Keep every detail, experience, education, project, skill, and achievement from the original resume
-2. DO NOT invent or add fake information
-3. Only IMPROVE formatting, wording, and ATS compatibility
-4. Keep the same chronological order and structure
-5. Enhance existing bullet points with better action verbs and quantifiable metrics where possible
-
-ORIGINAL RESUME TO IMPROVE:
-${resumeText}
-
-ANALYSIS FINDINGS TO ADDRESS:
-- Current ATS Score: ${currentAnalysis.atsScore}/100 (Target: 90+)
-- Missing Keywords to Add: ${currentAnalysis.missingKeywords.join(', ')}
-- Format Issues to Fix: ${currentAnalysis.formatSuggestions.join(', ')}
-- Content Improvements Needed: ${currentAnalysis.improvements.join(', ')}
-
-REQUIRED IMPROVEMENTS:
-1. **ATS Optimization**: Integrate missing keywords naturally into existing content
-2. **Format Enhancement**: Use clean, ATS-friendly formatting with proper headers
-3. **Content Strengthening**: Improve existing bullet points with strong action verbs
-4. **Structure Improvement**: Ensure logical flow and readability
-
-OUTPUT FORMAT - Create a complete, professionally formatted resume following this EXACT structure:
-
-[CANDIDATE'S FULL NAME]
-[Phone] | [Email] | [Location]
-[LinkedIn URL] | [Portfolio/GitHub URL]
-
-PROFESSIONAL SUMMARY
-[2-3 lines summarizing the candidate's experience and key strengths with relevant keywords]
-
-TECHNICAL SKILLS
-[Organize existing skills into relevant categories with added missing keywords]
-
-PROFESSIONAL EXPERIENCE
-[Job Title] - [Company Name] | [Location] | [Dates]
-• [Enhanced bullet point with action verb + achievement + impact/metric]
-• [Enhanced bullet point with action verb + achievement + impact/metric]
-• [Enhanced bullet point with action verb + achievement + impact/metric]
-
-[Continue for all positions from original resume]
-
-EDUCATION
-[Degree] - [Institution] | [Location] | [Graduation Date]
-[Include GPA, honors, relevant coursework if mentioned in original]
-
-PROJECTS (if applicable)
-[Project Name] | [Technologies Used] | [Date]
-• [Enhanced description with technical details and outcomes]
-
-CERTIFICATIONS (if applicable)
-[List all certifications from original resume]
-
-ADDITIONAL SECTIONS (if applicable)
-[Include any other sections from original resume like Languages, Publications, etc.]
-
-FORMATTING REQUIREMENTS:
-- Use bullet points consistently
-- Employ strong action verbs (Led, Developed, Implemented, Optimized, etc.)
-- Include quantifiable achievements where possible
-- Ensure consistent date formatting
-- Use industry-standard section headers
-- Maintain clean, professional layout
-
-Remember: ENHANCE the existing content, don't replace it. Every detail from the original resume must be preserved and improved.`;
-
-      const correctedResumeText = await generateResumeContent(prompt);
-      console.log('ATS-friendly resume generated successfully');
-      setCorrectedResume(correctedResumeText);
-      
-      toast({
-        title: "ATS-Friendly Resume Generated!",
-        description: "Your improved resume is ready for download as PDF.",
-      });
-    } catch (error: any) {
-      console.error('Correction generation error:', error);
-      
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate ATS-friendly resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingCorrections(false);
-    }
-  };
-
-  const downloadCorrectedResumeAsPDF = () => {
-    if (!correctedResume) return;
-    
-    try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      const maxWidth = pageWidth - 2 * margin;
-      let currentY = margin;
-
-      // Parse the resume content
-      const lines = correctedResume.split('\n');
-      
-      lines.forEach((line, index) => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) {
-          currentY += 5;
-          return;
-        }
-
-        // Check if we need a new page
-        if (currentY > 270) {
-          doc.addPage();
-          currentY = margin;
-        }
-
-        // Style different sections
-        if (index === 0 || trimmedLine.match(/^[A-Z\s]+$/)) {
-          // Name or section headers
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'bold');
-          currentY += 8;
-        } else if (trimmedLine.includes('|') && index < 5) {
-          // Contact info
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          currentY += 2;
-        } else if (trimmedLine.startsWith('•')) {
-          // Bullet points
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          currentY += 2;
-        } else {
-          // Regular text
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'normal');
-          currentY += 3;
-        }
-
-        // Split long lines
-        const splitText = doc.splitTextToSize(trimmedLine, maxWidth);
-        
-        if (Array.isArray(splitText)) {
-          splitText.forEach((textLine: string) => {
-            if (currentY > 270) {
-              doc.addPage();
-              currentY = margin;
-            }
-            doc.text(textLine, margin, currentY);
-            currentY += 5;
-          });
-        } else {
-          doc.text(splitText, margin, currentY);
-          currentY += 5;
-        }
-      });
-
-      // Save the PDF
-      doc.save(`ATS_Optimized_${fileName || 'Resume'}.pdf`);
-      
-      toast({
-        title: "PDF Downloaded",
-        description: "Your ATS-optimized resume has been downloaded as PDF successfully!",
-      });
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      toast({
-        title: "PDF Generation Failed",
-        description: "Failed to generate PDF. Please try downloading as text instead.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -424,7 +229,7 @@ Remember: ENHANCE the existing content, don't replace it. Every detail from the 
               <div className="space-y-4">
                 <div className="text-6xl">
                   {isDragActive ? (
-                    <Download className="w-16 h-16 mx-auto text-primary animate-pulse" />
+                    <Upload className="w-16 h-16 mx-auto text-primary animate-pulse" />
                   ) : (
                     <Upload className="w-16 h-16 mx-auto text-muted-foreground" />
                   )}
@@ -497,7 +302,7 @@ Remember: ENHANCE the existing content, don't replace it. Every detail from the 
               <div className="p-2 bg-primary/10 rounded-full">
                 <Sparkles className="w-6 h-6" />
               </div>
-              AI Analysis & Correction Results
+              ATS Analysis & Improvement Tips
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -523,101 +328,88 @@ Remember: ENHANCE the existing content, don't replace it. Every detail from the 
                   </div>
                 </div>
 
-                {/* Auto-Correction Download Section */}
-                {(isGeneratingCorrections || correctedResume) && (
-                  <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
-                    <CardHeader>
-                      <CardTitle className="text-green-700 dark:text-green-300 flex items-center gap-2">
-                        <Star className="w-5 h-5" />
-                        {isGeneratingCorrections ? 'Generating ATS-Optimized Resume...' : 'ATS-Optimized Resume Ready!'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {isGeneratingCorrections ? (
-                        <div className="flex items-center gap-3">
-                          <Loader2 className="w-5 h-5 animate-spin text-green-600" />
-                          <p className="text-sm text-green-600 dark:text-green-400">
-                            AI is automatically correcting your resume for maximum ATS compatibility...
-                          </p>
+                {/* Improvement Tips Section */}
+                <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20">
+                  <CardHeader>
+                    <CardTitle className="text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                      <Lightbulb className="w-5 h-5" />
+                      How to Improve Your Resume for ATS
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Things to Add */}
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <Plus className="w-5 h-5" />
+                        What to ADD to Your Resume
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.missingKeywords.map((keyword, index) => (
+                            <Badge key={index} variant="outline" className="text-xs border-green-200 text-green-700 dark:border-green-700 dark:text-green-300">
+                              + {keyword}
+                            </Badge>
+                          ))}
                         </div>
-                      ) : correctedResume ? (
-                        <div className="space-y-4">
-                          <p className="text-sm text-green-600 dark:text-green-400">
-                            Your ATS-optimized resume has been generated and is ready for download as PDF!
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <Button
-                              onClick={downloadCorrectedResumeAsPDF}
-                              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Download PDF
-                            </Button>
-                            
-                            <Button
-                              onClick={() => {
-                                navigator.clipboard.writeText(correctedResume);
-                                toast({
-                                  title: "Copied to Clipboard",
-                                  description: "The optimized resume has been copied.",
-                                });
-                              }}
-                              variant="outline"
-                            >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copy Text
-                            </Button>
-                            
-                            <Button
-                              onClick={() => handleGenerateCorrections()}
-                              variant="ghost"
-                              disabled={isGeneratingCorrections}
-                            >
-                              <RefreshCw className="w-4 h-4 mr-2" />
-                              Regenerate
-                            </Button>
-                          </div>
+                        <div className="bg-white/50 dark:bg-black/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                          <p className="text-sm text-green-700 dark:text-green-300 mb-2 font-medium">💡 Pro Tips:</p>
+                          <ul className="text-xs text-green-600 dark:text-green-400 space-y-1">
+                            <li>• Naturally integrate these keywords into your experience bullets</li>
+                            <li>• Add them to your skills section if relevant</li>
+                            <li>• Include them in your professional summary</li>
+                            <li>• Use variations of keywords (e.g., "manage" and "management")</li>
+                          </ul>
                         </div>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                )}
+                      </div>
+                    </div>
 
-                {/* Manual Correction Button */}
-                {!correctedResume && !isGeneratingCorrections && (
-                  <Button
-                    onClick={() => handleGenerateCorrections()}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Generate ATS-Optimized Resume
-                  </Button>
-                )}
+                    {/* Things to Remove/Fix */}
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-600 dark:text-red-400">
+                        <Minus className="w-5 h-5" />
+                        What to REMOVE or FIX
+                      </h4>
+                      <div className="bg-white/50 dark:bg-black/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                        <ul className="space-y-2">
+                          {analysis.formatSuggestions.map((suggestion, index) => (
+                            <li key={index} className="flex items-start gap-3 text-sm">
+                              <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-red-700 dark:text-red-300">{suggestion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Improvement Actions */}
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                        <TrendingUp className="w-5 h-5" />
+                        Action Items for Better ATS Score
+                      </h4>
+                      <div className="bg-white/50 dark:bg-black/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <ul className="space-y-2">
+                          {analysis.improvements.map((improvement, index) => (
+                            <li key={index} className="flex items-start gap-3 text-sm">
+                              <CheckCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-blue-700 dark:text-blue-300">{improvement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Analysis Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Missing Keywords */}
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-600 dark:text-red-400">
-                      <XCircle className="w-5 h-5" />
-                      Missing Keywords ({analysis.missingKeywords.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                      {analysis.missingKeywords.map((keyword, index) => (
-                        <Badge key={index} variant="destructive" className="text-xs">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Matching Job Roles */}
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Target className="w-5 h-5" />
                       Matching Roles ({analysis.matchingJobRoles.length})
                     </h4>
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2">
                       {analysis.matchingJobRoles.map((role, index) => (
                         <Badge key={index} variant="outline" className="text-xs border-blue-200 text-blue-700 dark:border-blue-700 dark:text-blue-300">
                           {role}
@@ -625,39 +417,37 @@ Remember: ENHANCE the existing content, don't replace it. Every detail from the 
                       ))}
                     </div>
                   </div>
+
+                  {/* Additional Tips */}
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                      <BookOpen className="w-5 h-5" />
+                      General ATS Tips
+                    </h4>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                        <li>• Use standard section headers (Experience, Education, Skills)</li>
+                        <li>• Avoid images, graphics, and fancy formatting</li>
+                        <li>• Use bullet points for easy scanning</li>
+                        <li>• Include quantifiable achievements with numbers</li>
+                        <li>• Save as PDF to preserve formatting</li>
+                        <li>• Use standard fonts (Arial, Calibri, Times New Roman)</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Suggestions */}
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
-                      <AlertCircle className="w-5 h-5" />
-                      Format Suggestions
-                    </h4>
-                    <ul className="space-y-2 max-h-40 overflow-y-auto">
-                      {analysis.formatSuggestions.map((suggestion, index) => (
-                        <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-sm">{suggestion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
-                      <CheckCircle className="w-5 h-5" />
-                      Recommended Improvements
-                    </h4>
-                    <ul className="space-y-2 max-h-40 overflow-y-auto">
-                      {analysis.improvements.map((improvement, index) => (
-                        <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{improvement}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                {/* Retry Button */}
+                <div className="text-center">
+                  <Button
+                    onClick={handleAnalyze}
+                    variant="outline"
+                    disabled={isAnalyzing}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Re-analyze Resume
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -665,37 +455,14 @@ Remember: ENHANCE the existing content, don't replace it. Every detail from the 
                 <div className="space-y-4">
                   <Brain className="w-20 h-20 mx-auto opacity-30" />
                   <div>
-                    <p className="text-xl font-medium">Ready for AI Analysis</p>
-                    <p className="text-sm mt-2">Upload your resume (PDF, DOC, DOCX, TXT) and get instant analysis with automatic corrections</p>
+                    <p className="text-xl font-medium">Ready for ATS Analysis</p>
+                    <p className="text-sm mt-2">Upload your resume and get detailed tips on how to make it ATS-friendly</p>
                   </div>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Corrected Resume Preview */}
-        {correctedResume && (
-          <Card className="border-2 border-green-200 dark:border-green-800">
-            <CardHeader>
-              <CardTitle className="gradient-text flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                  <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
-                </div>
-                Your ATS-Optimized Resume Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap text-sm bg-white/50 dark:bg-black/20 p-4 rounded-lg border max-h-96 overflow-y-auto font-sans">{correctedResume}</pre>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
