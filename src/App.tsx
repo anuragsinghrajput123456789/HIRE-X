@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import FloatingChatbot from "./components/FloatingChatbot";
 import Index from "./pages/Index";
 import GeneratorPage from "./pages/GeneratorPage";
 import AnalyzerPage from "./pages/AnalyzerPage";
@@ -21,7 +22,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-slate-900 dark:to-blue-900/20">
           <Navbar />
           <main className="relative">
             <Routes>
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
+          <FloatingChatbot />
         </div>
       </BrowserRouter>
     </TooltipProvider>
