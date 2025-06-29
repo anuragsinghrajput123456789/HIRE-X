@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,17 +98,17 @@ const ColdEmailGenerator = () => {
 
     setIsSending(true);
     
-    // Create mailto link
+    // Create Gmail compose URL
     const subject = `Application for ${formData.jobTitle} Position`;
     const body = generatedEmail;
-    const mailtoLink = `mailto:${formData.recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(formData.recipientEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
-    // Open email client
-    window.open(mailtoLink);
+    // Open Gmail in a new tab
+    window.open(gmailUrl, '_blank');
     
     setTimeout(() => {
       setIsSending(false);
-      toast.success('Email client opened successfully!');
+      toast.success('Gmail opened successfully!');
     }, 1000);
   };
 
@@ -312,7 +311,7 @@ const ColdEmailGenerator = () => {
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4" />
-                        Send Email
+                        Send via Gmail
                       </>
                     )}
                   </Button>
