@@ -49,7 +49,7 @@ const FloatingChatbot = () => {
 
     try {
       const genAI = new GoogleGenerativeAI('AIzaSyAHI6dEYABoLBXht70PtS97_fPFruDipH8');
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `You are an expert career counselor, interview coach, and job search specialist. The user is asking: "${inputMessage}"
 
