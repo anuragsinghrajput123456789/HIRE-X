@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -117,28 +116,28 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
-      <Card className="h-fit shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/95 backdrop-blur-md">
-        <CardHeader className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-t-lg">
+      <Card className="h-fit shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md">
+        <CardHeader className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-t-lg">
           <CardTitle className="gradient-text flex items-center gap-3 text-xl">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
               <Bot className="w-6 h-6 text-white" />
             </div>
             AI Resume Generator
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground dark:text-gray-300">
             Create professional, ATS-optimized resumes with AI-powered content enhancement
           </p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <BasicInfoForm register={register} errors={errors} />
-            <Separator className="bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
             <EducationForm register={register} control={control} />
-            <Separator className="bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
             <ExperienceForm register={register} control={control} />
-            <Separator className="bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
             <AdditionalInfoForm register={register} control={control} />
-            <Separator className="bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
             <CustomSectionsForm 
               customSections={customSections}
               onSectionsChange={setCustomSections}
@@ -165,8 +164,8 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
         </CardContent>
       </Card>
 
-      <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/95 backdrop-blur-md">
-        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 rounded-t-lg">
+      <Card className="shadow-2xl hover:shadow-3xl transition-all duration-500 border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md">
+        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-t-lg">
           <CardTitle className="gradient-text flex items-center gap-3 text-xl">
             <div className="p-2 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl">
               <FileText className="w-6 h-6 text-white" />
@@ -179,7 +178,7 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                 onClick={copyToClipboard} 
                 variant="outline" 
                 size="sm"
-                className="flex items-center gap-2 hover:scale-105 transition-transform"
+                className="flex items-center gap-2 hover:scale-105 transition-transform border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <Copy size={16} />
                 Copy Text
@@ -402,10 +401,10 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
               </div>
             </div>
           ) : (
-            <div className="text-center text-muted-foreground py-20 flex flex-col items-center gap-6">
+            <div className="text-center text-muted-foreground dark:text-gray-300 py-20 flex flex-col items-center gap-6">
               <div className="relative">
-                <div className="p-6 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full">
-                  <FileText size={64} className="text-gray-400" />
+                <div className="p-6 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full">
+                  <FileText size={64} className="text-gray-400 dark:text-gray-500" />
                 </div>
                 <div className="absolute -top-2 -right-2 p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse">
                   <Sparkles size={24} className="text-white" />
@@ -413,12 +412,12 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
               </div>
               <div className="space-y-3 max-w-md">
                 <h3 className="text-2xl font-bold gradient-text">AI-Powered Resume Creator</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                   Fill out the form and click "Generate Perfect ATS Resume" to create a 
                   professional, keyword-optimized resume that passes through ATS systems 
                   and catches recruiters' attention.
                 </p>
-                <div className="flex items-center justify-center gap-4 pt-4 text-xs text-gray-500">
+                <div className="flex items-center justify-center gap-4 pt-4 text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <Eye size={16} />
                     <span>ATS-Friendly</span>

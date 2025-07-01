@@ -19,24 +19,24 @@ const GeneratorPage = () => {
               AI Resume Generator
             </h1>
           </div>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
+          <p className="text-xl text-muted-foreground dark:text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
             Create professional, ATS-optimized resumes powered by advanced AI technology. 
             Stand out from the competition with personalized, industry-specific content.
           </p>
           
           {/* Feature Highlights */}
           <div className="flex flex-wrap justify-center gap-6 mb-8">
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
               <Zap className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI-Powered</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">AI-Powered</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
               <FileText className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ATS-Optimized</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">ATS-Optimized</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
               <Sparkles className="w-5 h-5 text-purple-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Professional Templates</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Professional Templates</span>
             </div>
           </div>
         </div>
