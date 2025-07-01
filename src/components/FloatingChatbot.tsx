@@ -108,13 +108,13 @@ Keep your response concise, practical, and professional. Use markdown formatting
 
   return (
     <>
-      {/* Floating Chat Button - Responsive positioning */}
+      {/* Floating Chat Button - Fixed blinking issue */}
       {!isOpen && (
         <Button
           onClick={toggleChat}
           className={`fixed ${
             isMobile ? 'bottom-4 right-4 w-14 h-14' : 'bottom-6 right-6 w-16 h-16'
-          } rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 z-50 animate-pulse hover:animate-none`}
+          } rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 z-50`}
           size="icon"
         >
           <MessageCircle className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />

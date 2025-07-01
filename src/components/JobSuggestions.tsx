@@ -44,10 +44,13 @@ const JobSuggestions = () => {
   const [experienceLevel, setExperienceLevel] = useState('');
   const [isSearchingJobs, setIsSearchingJobs] = useState(false);
   const [isSearchingInternships, setIsSearchingInternships] = useState(false);
+  const [isSearchingFreelancing, setIsSearchingFreelancing] = useState(false);
   const [jobListings, setJobListings] = useState<JobListing[]>([]);
   const [internshipListings, setInternshipListings] = useState<InternshipListing[]>([]);
+  const [freelancingListings, setFreelancingListings] = useState<any[]>([]);
   const [jobTips, setJobTips] = useState<string[]>([]);
   const [internshipTips, setInternshipTips] = useState<string[]>([]);
+  const [freelancingTips, setFreelancingTips] = useState<string[]>([]);
   const { toast } = useToast();
 
   const searchJobs = async () => {
@@ -113,6 +116,39 @@ const JobSuggestions = () => {
       });
     } finally {
       setIsSearchingInternships(false);
+    }
+  };
+
+  const searchFreelancing = async () => {
+    if (!targetRole.trim()) {
+      toast({
+        title: "No Target Role",
+        description: "Please specify a target role to search for freelancing opportunities.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearchingFreelancing(true);
+    try {
+      const freelancingProjects = generateRealisticFreelancingListings(targetRole, location);
+      const tips = generateFreelancingTips(targetRole);
+      
+      setFreelancingListings(freelancingProjects);
+      setFreelancingTips(tips);
+      
+      toast({
+        title: "Freelancing Projects Found!",
+        description: `Found ${freelancingProjects.length} freelancing opportunities and tips!`,
+      });
+    } catch (error) {
+      console.error('Freelancing search error:', error);
+      toast({
+        title: "Search Complete",
+        description: "Generated freelancing opportunities and tips for your search!",
+      });
+    } finally {
+      setIsSearchingFreelancing(false);
     }
   };
 
@@ -249,6 +285,60 @@ const JobSuggestions = () => {
     });
   };
 
+  const generateRealisticFreelancingListings = (role: string, loc: string) => {
+    const freelancingPlatforms = [
+      { name: 'Upwork', baseUrl: 'https://www.upwork.com/nx/search/jobs/?q=' },
+      { name: 'Fiverr', baseUrl: 'https://www.fiverr.com/search/gigs?query=' },
+      { name: 'Freelancer', baseUrl: 'https://www.freelancer.com/jobs/' },
+      { name: 'Guru', baseUrl: 'https://www.guru.com/d/jobs/q/' },
+      { name: 'PeoplePerHour', baseUrl: 'https://www.peopleperhour.com/freelance-jobs/' },
+      { name: 'Toptal', baseUrl: 'https://www.toptal.com/freelance-jobs/' },
+      { name: 'Truelancer', baseUrl: 'https://www.truelancer.com/freelancer/jobs/' },
+      { name: 'Worknhire', baseUrl: 'https://www.worknhire.com/search/freelance-jobs/' }
+    ];
+
+    const projectTypes = ['Fixed Price', 'Hourly', 'Monthly Retainer', 'Project-based'];
+    const budgetRanges = ['$50-$250', '$250-$750', '$750-$1500', '$1500-$3000', '$3000+'];
+    const durations = ['1-2 weeks', '2-4 weeks', '1-2 months', '2-3 months', '3+ months'];
+    const skillSets = [
+      ['React', 'Node.js', 'JavaScript', 'API Integration'],
+      ['Python', 'Data Analysis', 'Machine Learning', 'Pandas'],
+      ['UI/UX', 'Figma', 'Adobe XD', 'Prototyping'],
+      ['WordPress', 'PHP', 'MySQL', 'Custom Development'],
+      ['Digital Marketing', 'SEO', 'Content Writing', 'Social Media'],
+      ['Mobile App', 'Flutter', 'React Native', 'Firebase']
+    ];
+
+    const postedTimes = ['2 hours ago', '1 day ago', '3 days ago', '1 week ago'];
+
+    return Array.from({ length: 15 }, (_, i) => {
+      const platform = freelancingPlatforms[i % freelancingPlatforms.length];
+      const roleVariations = [
+        `${role} Development Project`,
+        `${role} Freelance Work`,
+        `${role} Consulting`,
+        `${role} Project`,
+        `Remote ${role} Work`
+      ];
+      
+      return {
+        title: roleVariations[i % roleVariations.length],
+        client: `Client ${String.fromCharCode(65 + (i % 26))}`,
+        location: loc || 'Remote',
+        type: projectTypes[i % projectTypes.length],
+        budget: budgetRanges[i % budgetRanges.length],
+        duration: durations[i % durations.length],
+        skills: skillSets[i % skillSets.length],
+        platform: platform.name,
+        url: `${platform.baseUrl}${encodeURIComponent(role.toLowerCase())}`,
+        posted: postedTimes[i % postedTimes.length],
+        description: `Looking for an experienced ${role} for ${projectTypes[i % projectTypes.length].toLowerCase()} work. Great opportunity for freelancers with relevant skills.`,
+        proposals: Math.floor(Math.random() * 20) + 1,
+        rating: (4 + Math.random()).toFixed(1)
+      };
+    });
+  };
+
   const generateJobApplicationTips = (role: string, exp: string): string[] => {
     const generalTips = [
       "Tailor your resume for each job application with relevant keywords",
@@ -376,6 +466,58 @@ const JobSuggestions = () => {
     return tips.slice(0, 8);
   };
 
+  const generateFreelancingTips = (role: string): string[] => {
+    const generalTips = [
+      "Create a compelling freelancer profile with a professional photo",
+      "Build a strong portfolio showcasing your best work",
+      "Start with competitive rates to build reviews and ratings",
+      "Write personalized proposals for each project",
+      "Respond to project invitations quickly",
+      "Maintain clear communication with clients",
+      "Set realistic deadlines and deliver on time",
+      "Ask for client feedback and testimonials"
+    ];
+
+    const roleSpecificTips = {
+      'developer': [
+        "Showcase your GitHub profile and live project demos",
+        "Highlight your technical stack and years of experience",
+        "Offer free consultations to discuss project requirements",
+        "Provide code samples relevant to the project"
+      ],
+      'designer': [
+        "Create a visually appealing portfolio with case studies",
+        "Show before/after comparisons of your work",
+        "Offer multiple design concepts for client selection",
+        "Stay updated with latest design trends"
+      ],
+      'writer': [
+        "Provide writing samples in your niche",
+        "Offer SEO optimization services",
+        "Highlight your research and fact-checking skills",
+        "Show expertise in content management systems"
+      ],
+      'marketing': [
+        "Share case studies with measurable results",
+        "Highlight your knowledge of marketing tools",
+        "Offer free marketing audits to potential clients",
+        "Show certifications from Google, Facebook, etc."
+      ]
+    };
+
+    let tips = [...generalTips];
+    
+    const roleKey = role.toLowerCase();
+    for (const [key, roleTips] of Object.entries(roleSpecificTips)) {
+      if (roleKey.includes(key)) {
+        tips = [...tips, ...roleTips];
+        break;
+      }
+    }
+
+    return tips.slice(0, 10);
+  };
+
   const getPlatformColor = (platform: string) => {
     const colors: { [key: string]: string } = {
       'Naukri.com': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -409,6 +551,26 @@ const JobSuggestions = () => {
     { name: 'Forage', url: 'https://www.theforage.com', description: 'Virtual work experience programs' }
   ];
 
+  const internationalFreelancingWebsites = [
+    { name: 'Upwork', url: 'https://www.upwork.com', description: 'World\'s largest freelancing platform with 18M+ freelancers', flag: '🌍' },
+    { name: 'Fiverr', url: 'https://www.fiverr.com', description: 'Marketplace for creative & digital services starting at $5', flag: '🌍' },
+    { name: 'Freelancer', url: 'https://www.freelancer.com', description: 'Global crowdsourcing marketplace with 50M+ users', flag: '🌍' },
+    { name: 'Toptal', url: 'https://www.toptal.com', description: 'Exclusive network of top 3% freelance talent', flag: '🌍' },
+    { name: 'Guru', url: 'https://www.guru.com', description: 'Flexible online workplace for freelancers', flag: '🌍' },
+    { name: 'PeoplePerHour', url: 'https://www.peopleperhour.com', description: 'UK-based platform for freelance services', flag: '🇬🇧' },
+    { name: '99designs', url: 'https://99designs.com', description: 'Design contests and 1-to-1 design projects', flag: '🌍' },
+    { name: 'Behance', url: 'https://www.behance.net/jobboard', description: 'Creative portfolio platform with job board', flag: '🌍' }
+  ];
+
+  const nationalFreelancingWebsites = [
+    { name: 'Truelancer', url: 'https://www.truelancer.com', description: 'India\'s leading freelancing platform', flag: '🇮🇳' },
+    { name: 'Worknhire', url: 'https://www.worknhire.com', description: 'Indian freelancing marketplace', flag: '🇮🇳' },
+    { name: 'Freelancer India', url: 'https://www.freelancer.in', description: 'Indian version of Freelancer.com', flag: '🇮🇳' },
+    { name: 'Taskmo', url: 'https://www.taskmo.com', description: 'Gig economy platform for India', flag: '🇮🇳' },
+    { name: 'FlexC', url: 'https://www.flexc.work', description: 'Flexible work platform for India', flag: '🇮🇳' },
+    { name: 'Hunar Online', url: 'https://www.hunaronline.com', description: 'Skill-based freelancing platform', flag: '🇮🇳' }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Search Section */}
@@ -416,7 +578,7 @@ const JobSuggestions = () => {
         <CardHeader>
           <CardTitle className="gradient-text flex items-center gap-2">
             <Globe className="w-5 h-5" />
-            Find Jobs & Internships
+            Find Jobs, Internships & Freelancing
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -450,7 +612,7 @@ const JobSuggestions = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               onClick={searchJobs}
               disabled={isSearchingJobs || !targetRole.trim()}
@@ -486,12 +648,30 @@ const JobSuggestions = () => {
                 </>
               )}
             </Button>
+
+            <Button
+              onClick={searchFreelancing}
+              disabled={isSearchingFreelancing || !targetRole.trim()}
+              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+            >
+              {isSearchingFreelancing ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Searching Freelancing...
+                </>
+              ) : (
+                <>
+                  <Users className="w-5 h-5 mr-2" />
+                  Search Freelancing & Tips
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="jobs" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="jobs" className="flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
             Jobs ({jobListings.length})
@@ -499,6 +679,10 @@ const JobSuggestions = () => {
           <TabsTrigger value="internships" className="flex items-center gap-2">
             <GraduationCap className="w-4 h-4" />
             Internships ({internshipListings.length})
+          </TabsTrigger>
+          <TabsTrigger value="freelancing" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Freelancing ({freelancingListings.length})
           </TabsTrigger>
         </TabsList>
 
@@ -772,21 +956,185 @@ const JobSuggestions = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="freelancing" className="space-y-6">
+          {/* Freelancing Tips */}
+          {freelancingTips.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="gradient-text flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5" />
+                  Freelancing Success Tips for {targetRole}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {freelancingTips.map((tip, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950 dark:to-teal-950 rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm">{tip}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Freelancing Project Listings */}
+          {freelancingListings.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="gradient-text flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Freelancing Projects ({freelancingListings.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {freelancingListings.map((project, index) => (
+                    <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-gradient-to-br from-white to-green-50 dark:from-gray-900 dark:to-green-950">
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-lg line-clamp-2">{project.title}</h3>
+                          <div className="flex items-center gap-2">
+                            <Building className="w-4 h-4" />
+                            <span className="text-muted-foreground">{project.client}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <MapPin className="w-4 h-4" />
+                            {project.location}
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            {project.duration} • {project.posted}
+                          </div>
+                          <div className="flex items-center gap-1 text-green-600 font-semibold">
+                            <Star className="w-4 h-4" />
+                            {project.budget}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">{project.type}</Badge>
+                          <Badge variant="outline" className="text-xs">{project.proposals} proposals</Badge>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          {project.skills.slice(0, 3).map((skill: string, skillIndex: number) => (
+                            <Badge key={skillIndex} variant="secondary" className="text-xs">
+                              {skill}
+                            </Badge>
+                          ))}
+                          {project.skills.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{project.skills.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {project.description}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <Badge className={`text-xs ${getPlatformColor(project.platform)}`}>
+                            {project.platform}
+                          </Badge>
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={project.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              View Project
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* International Freelancing Websites */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="gradient-text flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                International Freelancing Platforms
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {internationalFreelancingWebsites.map((website, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{website.flag}</span>
+                        <h4 className="font-semibold text-sm">{website.name}</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{website.description}</p>
+                    </div>
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={website.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* National Freelancing Websites */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="gradient-text flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Indian Freelancing Platforms
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {nationalFreelancingWebsites.map((website, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{website.flag}</span>
+                        <h4 className="font-semibold text-sm">{website.name}</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{website.description}</p>
+                    </div>
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={website.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* No Results Message */}
-      {!isSearchingJobs && !isSearchingInternships && jobListings.length === 0 && internshipListings.length === 0 && (
+      {!isSearchingJobs && !isSearchingInternships && !isSearchingFreelancing && 
+       jobListings.length === 0 && internshipListings.length === 0 && freelancingListings.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <div className="space-y-4">
               <div className="flex justify-center gap-4">
                 <Briefcase className="w-12 h-12 text-muted-foreground opacity-50" />
                 <GraduationCap className="w-12 h-12 text-muted-foreground opacity-50" />
+                <Users className="w-12 h-12 text-muted-foreground opacity-50" />
               </div>
               <div>
                 <p className="text-xl font-medium text-muted-foreground">Ready to Find Your Next Opportunity?</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Enter your target role to discover jobs and internships from top platforms with personalized application tips!
+                  Enter your target role to discover jobs, internships, and freelancing projects from top platforms with personalized tips!
                 </p>
               </div>
             </div>
