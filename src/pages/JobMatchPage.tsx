@@ -1,45 +1,104 @@
 
 import JobSuggestions from '../components/JobSuggestions';
-import { Target, Briefcase, TrendingUp, Users } from 'lucide-react';
+import { Target, Briefcase, TrendingUp, Users, Sparkles, Zap, Star, Globe } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const JobMatchPage = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-float animate-delay-200"></div>
+        <div className="absolute bottom-20 left-1/2 w-80 h-80 bg-pink-400/20 rounded-full blur-3xl animate-float animate-delay-500"></div>
+      </div>
+
+      <div className="container mx-auto mobile-padding py-8 lg:py-16 relative z-10">
         {/* Enhanced Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center items-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl shadow-lg">
-              <Target className="w-8 h-8 text-white" />
+        <div className={`text-center mb-16 ${isLoaded ? 'animate-slide-in-up' : 'opacity-0'}`}>
+          <div className="flex justify-center items-center gap-4 mb-8">
+            <div className="p-4 bg-gradient-to-br from-purple-500 via-blue-500 to-pink-600 rounded-3xl shadow-2xl animate-pulse-glow">
+              <Target className="w-10 h-10 md:w-12 md:h-12 text-white animate-rotate" />
             </div>
-            <h1 className="text-5xl font-bold gradient-text">
-              Job Matching
+            <h1 className="mobile-title font-bold gradient-text animate-gradient">
+              Job Matching Hub
             </h1>
+            <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl animate-bounce-in animate-delay-300">
+              <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-white" />
+            </div>
           </div>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
-            Discover personalized job recommendations and career guidance. 
-            Find the perfect opportunities that match your skills and experience.
+          
+          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto mb-12 leading-relaxed font-medium">
+            🚀 Discover your dream career with AI-powered job matching, internship opportunities, 
+            and freelancing projects from around the globe
           </p>
           
-          {/* Feature Highlights */}
-          <div className="flex flex-wrap justify-center gap-6 mb-8">
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
-              <Briefcase className="w-5 h-5 text-purple-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Job Matching</span>
+          {/* Enhanced Feature Highlights */}
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-12 ${isLoaded ? 'animate-slide-in-up animate-delay-200' : 'opacity-0'}`}>
+            <div className="flex flex-col items-center gap-3 card-enhanced p-6 group hover:scale-105 transition-all duration-300">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl group-hover:animate-bounce">
+                <Briefcase className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 block">Job Matching</span>
+                <span className="text-sm text-muted-foreground">AI-Powered Recommendations</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
-              <Users className="w-5 h-5 text-pink-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Internships</span>
+            
+            <div className="flex flex-col items-center gap-3 card-enhanced p-6 group hover:scale-105 transition-all duration-300">
+              <div className="p-3 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl group-hover:animate-bounce animate-delay-100">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 block">Internships</span>
+                <span className="text-sm text-muted-foreground">Career Building Opportunities</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 px-4 py-2 rounded-full shadow-md">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Career Guidance</span>
+            
+            <div className="flex flex-col items-center gap-3 card-enhanced p-6 group hover:scale-105 transition-all duration-300">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl group-hover:animate-bounce animate-delay-200">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 block">Career Growth</span>
+                <span className="text-sm text-muted-foreground">Professional Development</span>
+              </div>
             </div>
+            
+            <div className="flex flex-col items-center gap-3 card-enhanced p-6 group hover:scale-105 transition-all duration-300">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl group-hover:animate-bounce animate-delay-300">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 block">Freelancing</span>
+                <span className="text-sm text-muted-foreground">Global Opportunities</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${isLoaded ? 'animate-slide-in-up animate-delay-300' : 'opacity-0'}`}>
+            <button className="btn-gradient flex items-center gap-3 text-base lg:text-lg">
+              <Zap className="w-5 h-5" />
+              Start Matching Now
+            </button>
+            <button className="btn-outline flex items-center gap-3 text-base lg:text-lg">
+              <Star className="w-5 h-5" />
+              View Success Stories
+            </button>
           </div>
         </div>
 
         {/* Main Content */}
-        <JobSuggestions />
+        <div className={`${isLoaded ? 'animate-slide-in-up animate-delay-500' : 'opacity-0'}`}>
+          <JobSuggestions />
+        </div>
       </div>
     </div>
   );
