@@ -156,14 +156,17 @@ export const generateResume = async (data: ResumeData): Promise<string> => {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const prompt = `Create a highly ATS-optimized, professional resume that will pass through Applicant Tracking Systems. Use the following guidelines:
+    const prompt = `You are an expert ATS (Applicant Tracking System) resume writer and career coach. Create a highly optimized, professional resume that will pass through ATS systems and impress hiring managers.
 
-CRITICAL ATS REQUIREMENTS:
-- Use standard section headers: PROFESSIONAL SUMMARY, CORE COMPETENCIES, PROFESSIONAL EXPERIENCE, EDUCATION, KEY PROJECTS
-- Include relevant keywords for the ${data.jobRole} role
-- Use action verbs and quantifiable achievements
-- Ensure proper formatting with consistent fonts and spacing
-- Include industry-specific terminology and skills
+CRITICAL ATS OPTIMIZATION REQUIREMENTS:
+- Use standard section headers that ATS systems recognize
+- Include 15-20 relevant keywords for ${data.jobRole} role distributed naturally throughout
+- Start each experience bullet with strong action verbs (Achieved, Managed, Developed, Led, etc.)
+- Include quantifiable results and metrics wherever possible
+- Use industry-standard terminology and technical skills
+- Ensure consistent formatting and proper spacing
+- Write in third person, professional tone
+- Include power words that show impact and leadership
 
 CANDIDATE INFORMATION:
 Name: ${data.fullName}
@@ -172,35 +175,57 @@ Phone: ${data.phone}
 Target Role: ${data.jobRole}
 ${data.linkedin ? `LinkedIn: ${data.linkedin}` : ''}
 ${data.github ? `GitHub: ${data.github}` : ''}
-${data.summary ? `Summary: ${data.summary}` : ''}
 
-SKILLS (optimize with industry keywords): 
+PROFESSIONAL SUMMARY REQUIREMENTS:
+${data.summary ? `Base Summary: ${data.summary}` : `Create a compelling 3-4 line summary for ${data.jobRole}`}
+- Highlight years of experience and key expertise
+- Include 3-5 industry keywords
+- Showcase unique value proposition
+- Mention quantifiable achievements if applicable
+
+CORE COMPETENCIES (Optimize with ATS keywords):
 ${data.skills.join(', ')}
+- Add related technical skills and tools
+- Include soft skills relevant to ${data.jobRole}
+- Use industry-standard terminology
+- Group by categories if applicable (Technical Skills, Leadership, etc.)
 
 EDUCATION:
 ${data.education.map(edu => `${edu.degree} from ${edu.institution} (${edu.year})${edu.gpa ? ` - GPA: ${edu.gpa}` : ''}`).join('\n')}
 
-PROFESSIONAL EXPERIENCE:
+PROFESSIONAL EXPERIENCE (Rewrite with impact):
 ${data.experience.map(exp => `${exp.role} at ${exp.company} (${exp.duration})
-${exp.description}`).join('\n\n')}
+Current Description: ${exp.description}`).join('\n\n')}
+
+ENHANCEMENT INSTRUCTIONS FOR EXPERIENCE:
+1. Start each bullet with a strong action verb
+2. Include specific numbers, percentages, or metrics
+3. Show progression and growth
+4. Highlight achievements, not just responsibilities
+5. Use keywords relevant to ${data.jobRole}
+6. Focus on results and business impact
 
 ${data.projects.length > 0 ? `KEY PROJECTS:
-${data.projects.map(proj => `${proj.name}: ${proj.description} (Technologies: ${proj.technologies})`).join('\n')}` : ''}
+${data.projects.map(proj => `${proj.name}: ${proj.description} (Technologies: ${proj.technologies})`).join('\n')}
+- Enhance project descriptions with technical details and outcomes` : ''}
 
 ${data.certifications.length > 0 ? `CERTIFICATIONS: ${data.certifications.join(', ')}` : ''}
 ${data.languages.length > 0 ? `LANGUAGES: ${data.languages.join(', ')}` : ''}
 ${data.achievements.length > 0 ? `ACHIEVEMENTS: ${data.achievements.join(', ')}` : ''}
 
-INSTRUCTIONS:
-1. Create compelling professional summary with ${data.jobRole} keywords
-2. Optimize skills section with industry-relevant terms
-3. Rewrite experience bullets with strong action verbs and metrics
-4. Ensure all content is ATS-friendly and keyword-rich
-5. Focus on achievements and quantifiable results
-6. Use proper formatting that ATS systems can parse
-7. Include relevant technical and soft skills for ${data.jobRole}
+OUTPUT REQUIREMENTS:
+1. Professional Summary: 3-4 compelling lines with keywords
+2. Core Competencies: Organized list with industry keywords
+3. Professional Experience: Rewritten bullets with action verbs and metrics
+4. Education: Clean, ATS-friendly format
+5. Additional sections as applicable
+6. Ensure keyword density of 2-3% for target role
+7. Use consistent formatting throughout
+8. Include relevant technical and soft skills
+9. Focus on achievements and quantifiable results
+10. Make it ATS-parseable with clear section headers
 
-Return the optimized resume content in a clean, professional format.`;
+Create a complete, polished resume that will score 90+ on ATS systems and impress hiring managers. The content should be professional, impactful, and perfectly tailored for the ${data.jobRole} position.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
