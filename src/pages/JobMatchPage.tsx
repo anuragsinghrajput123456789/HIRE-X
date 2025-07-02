@@ -1,6 +1,6 @@
 
 import JobSuggestions from '../components/JobSuggestions';
-import { Target, Briefcase, TrendingUp, Users, Sparkles, Zap, Star, Globe } from 'lucide-react';
+import { Target, Briefcase, TrendingUp, Users, Sparkles, Zap, Globe } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const JobMatchPage = () => {
@@ -83,14 +83,10 @@ const JobMatchPage = () => {
           </div>
 
           {/* Call to Action */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 ${isLoaded ? 'animate-slide-in-up animate-delay-300' : 'opacity-0'}`}>
+          <div className={`flex justify-center ${isLoaded ? 'animate-slide-in-up animate-delay-300' : 'opacity-0'}`}>
             <button className="btn-gradient flex items-center gap-3 text-base lg:text-lg">
               <Zap className="w-5 h-5" />
               Start Matching Now
-            </button>
-            <button className="btn-outline flex items-center gap-3 text-base lg:text-lg">
-              <Star className="w-5 h-5" />
-              View Success Stories
             </button>
           </div>
         </div>
