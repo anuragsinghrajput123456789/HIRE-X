@@ -33,7 +33,7 @@ export interface JobDescriptionAnalysis {
   }>;
 }
 
-// Retry utility function
+// Retry utility function with better error handling
 const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
@@ -52,7 +52,6 @@ const retryWithBackoff = async <T>(
         throw error;
       }
       
-      // Exponential backoff
       const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
       console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -61,202 +60,244 @@ const retryWithBackoff = async <T>(
   throw new Error('Max retries exceeded');
 };
 
+// Improved text cleaning function
+const cleanResumeText = (text: string): string => {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,;:()\-@]/g, '')
+    .trim();
+};
+
+// Better keyword extraction from job roles
+const getJobRoleKeywords = (jobRole: string): string[] => {
+  const keywordMap: { [key: string]: string[] } = {
+    'Software Developer': ['JavaScript', 'Python', 'React', 'Node.js', 'Git', 'API', 'Database', 'Frontend', 'Backend', 'Agile'],
+    'Data Analyst': ['SQL', 'Python', 'Excel', 'Tableau', 'PowerBI', 'Statistics', 'Data Visualization', 'Analytics', 'Reporting'],
+    'Product Manager': ['Product Strategy', 'Roadmap', 'Stakeholder Management', 'Agile', 'Scrum', 'User Research', 'Analytics'],
+    'Marketing Manager': ['Digital Marketing', 'SEO', 'SEM', 'Social Media', 'Content Marketing', 'Analytics', 'Campaign Management'],
+    'Project Manager': ['Project Management', 'Agile', 'Scrum', 'Leadership', 'Risk Management', 'Stakeholder Management'],
+    'Business Analyst': ['Requirements Analysis', 'Process Improvement', 'SQL', 'Documentation', 'Stakeholder Management'],
+    'UX/UI Designer': ['User Experience', 'User Interface', 'Figma', 'Adobe', 'Prototyping', 'User Research', 'Wireframing'],
+    'DevOps Engineer': ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Infrastructure', 'Automation', 'Monitoring'],
+  };
+  
+  return keywordMap[jobRole] || ['Leadership', 'Communication', 'Problem Solving', 'Team Work'];
+};
+
 export const analyzeResumeRealTime = async (resumeText: string, jobRole: string): Promise<RealTimeAnalysis> => {
   try {
     console.log('Starting real-time resume analysis for job role:', jobRole);
     
-    const cleanedText = resumeText
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 20000); // Smaller limit for real-time analysis
+    const cleanedText = cleanResumeText(resumeText).substring(0, 15000);
     
-    if (cleanedText.length < 50) {
-      throw new Error('Resume text is too short for analysis.');
+    if (cleanedText.length < 100) {
+      throw new Error('Resume text is too short for meaningful analysis.');
     }
+    
+    const expectedKeywords = getJobRoleKeywords(jobRole);
     
     const result = await retryWithBackoff(async () => {
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
-      const prompt = `You are an expert ATS resume analyzer. Analyze this resume for the "${jobRole}" position and provide real-time feedback in JSON format.
+      const prompt = `Analyze this resume for the "${jobRole}" position. Provide analysis in JSON format.
 
 Resume Text:
 ${cleanedText}
 
 Target Job Role: ${jobRole}
+Expected Keywords: ${expectedKeywords.join(', ')}
 
-Provide your analysis as a valid JSON object with exactly this structure:
+Analyze and return ONLY a valid JSON object with this exact structure:
 {
   "keywordMatchScore": <number 0-100>,
-  "foundKeywords": ["keyword1", "keyword2", "keyword3"],
-  "missingKeywords": ["missing1", "missing2", "missing3"],
-  "readabilityScore": <number 0-100>,
+  "foundKeywords": [list of keywords found in resume],
+  "missingKeywords": [important keywords missing from resume],
+  "readabilityScore": <number 0-100 based on clarity and structure>,
   "structureAnalysis": {
-    "Contact Info": <boolean>,
-    "Professional Summary": <boolean>,
-    "Work Experience": <boolean>,
-    "Education": <boolean>,
-    "Skills": <boolean>,
-    "Projects": <boolean>
+    "Contact Information": <true if contact info present>,
+    "Professional Summary": <true if summary/objective present>,
+    "Work Experience": <true if experience section present>,
+    "Education": <true if education section present>,
+    "Skills": <true if skills section present>,
+    "Projects": <true if projects section present>
   },
-  "formattingIssues": ["issue1", "issue2", "issue3"]
+  "formattingIssues": [list of formatting problems]
 }
 
-Focus on:
-1. How well the resume matches keywords for the target job role
-2. Which important keywords are present vs missing
-3. How readable and well-structured the resume is
-4. What sections are present in the resume structure
-5. Any formatting or structural issues that would hurt ATS parsing
+Be accurate and specific. Only include keywords that are actually relevant to the job role.`;
 
-Ensure the response is valid JSON only, no additional text.`;
-
-      const result = await model.generateContent(prompt);
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 40,
+          topP: 0.8,
+          maxOutputTokens: 2048,
+        },
+      });
+      
       const response = await result.response;
       return response.text();
     });
     
     console.log('Raw real-time analysis response:', result);
     
-    // Parse JSON response
+    // Parse JSON response with better error handling
     try {
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         
-        // Validate the structure
-        if (typeof parsed.keywordMatchScore === 'number' && 
-            Array.isArray(parsed.foundKeywords) &&
-            Array.isArray(parsed.missingKeywords) &&
-            typeof parsed.readabilityScore === 'number' &&
-            typeof parsed.structureAnalysis === 'object' &&
-            Array.isArray(parsed.formattingIssues)) {
-          
-          console.log('Real-time analysis completed successfully:', parsed);
-          return parsed;
-        }
+        // Validate and sanitize the response
+        const analysis: RealTimeAnalysis = {
+          keywordMatchScore: Math.max(0, Math.min(100, parsed.keywordMatchScore || 0)),
+          foundKeywords: Array.isArray(parsed.foundKeywords) ? parsed.foundKeywords.slice(0, 15) : [],
+          missingKeywords: Array.isArray(parsed.missingKeywords) ? parsed.missingKeywords.slice(0, 10) : [],
+          readabilityScore: Math.max(0, Math.min(100, parsed.readabilityScore || 0)),
+          structureAnalysis: parsed.structureAnalysis || {},
+          formattingIssues: Array.isArray(parsed.formattingIssues) ? parsed.formattingIssues.slice(0, 8) : []
+        };
+        
+        console.log('Real-time analysis completed successfully:', analysis);
+        return analysis;
       }
     } catch (parseError) {
       console.error('JSON parsing error:', parseError);
     }
     
-    // Fallback response if parsing fails
-    console.log('Using fallback real-time analysis response');
+    // Improved fallback with job-specific analysis
+    const textLower = cleanedText.toLowerCase();
+    const foundKeywords = expectedKeywords.filter(keyword => 
+      textLower.includes(keyword.toLowerCase())
+    );
+    const missingKeywords = expectedKeywords.filter(keyword => 
+      !textLower.includes(keyword.toLowerCase())
+    );
+    
+    console.log('Using enhanced fallback real-time analysis response');
     return {
-      keywordMatchScore: 65,
-      foundKeywords: ['Experience', 'Skills', 'Management'],
-      missingKeywords: ['Leadership', 'Analytics', 'Communication'],
-      readabilityScore: 70,
+      keywordMatchScore: Math.round((foundKeywords.length / expectedKeywords.length) * 100),
+      foundKeywords: foundKeywords,
+      missingKeywords: missingKeywords,
+      readabilityScore: Math.min(85, Math.max(40, cleanedText.split(' ').length > 300 ? 75 : 60)),
       structureAnalysis: {
-        'Contact Info': true,
-        'Professional Summary': false,
-        'Work Experience': true,
-        'Education': true,
-        'Skills': true,
-        'Projects': false
+        'Contact Information': /email|phone|contact/.test(textLower),
+        'Professional Summary': /summary|objective|profile/.test(textLower),
+        'Work Experience': /experience|work|employment|job/.test(textLower),
+        'Education': /education|degree|university|college/.test(textLower),
+        'Skills': /skills|technical|proficient/.test(textLower),
+        'Projects': /project|portfolio/.test(textLower)
       },
-      formattingIssues: ['Missing professional summary', 'Inconsistent bullet points']
+      formattingIssues: []
     };
     
   } catch (error: any) {
     console.error('Real-time resume analysis error:', error);
-    
-    if (error.status === 503 || error.message?.includes('overloaded')) {
-      throw new Error('AI service is currently overloaded. Please try again in a few minutes.');
-    } else if (error.status === 429 || error.message?.includes('quota')) {
-      throw new Error('API quota exceeded. Please try again later.');
-    } else {
-      throw new Error('Failed to analyze resume in real-time. Please try again.');
-    }
+    throw new Error('Failed to analyze resume in real-time. Please try again.');
   }
 };
 
 export const analyzeResume = async (resumeText: string): Promise<AnalysisResult> => {
   try {
-    console.log('Starting resume analysis with text length:', resumeText.length);
+    console.log('Starting comprehensive resume analysis with text length:', resumeText.length);
     
-    // Clean and validate the resume text
-    const cleanedText = resumeText
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 50000); // Limit text size to avoid API limits
+    const cleanedText = cleanResumeText(resumeText).substring(0, 40000);
     
-    if (cleanedText.length < 100) {
-      throw new Error('Resume text is too short for meaningful analysis. Please ensure the document was uploaded correctly.');
+    if (cleanedText.length < 200) {
+      throw new Error('Resume text is too short for comprehensive analysis. Please ensure the document contains substantial content.');
     }
     
     const result = await retryWithBackoff(async () => {
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
-      const prompt = `You are an expert ATS (Applicant Tracking System) resume analyzer. Analyze the following resume text and provide a detailed analysis in JSON format.
+      const prompt = `You are an expert ATS resume analyzer. Analyze this resume comprehensively and provide detailed feedback.
 
-Resume Text:
+Resume Content:
 ${cleanedText}
 
-Provide your analysis as a valid JSON object with exactly this structure:
+Provide your analysis as a valid JSON object with this exact structure:
 {
-  "atsScore": <number between 0-100>,
-  "missingKeywords": ["keyword1", "keyword2", "keyword3"],
-  "formatSuggestions": ["suggestion1", "suggestion2", "suggestion3"],
-  "improvements": ["improvement1", "improvement2", "improvement3"],
-  "matchingJobRoles": ["role1", "role2", "role3"]
+  "atsScore": <number 0-100>,
+  "missingKeywords": [array of important missing keywords],
+  "formatSuggestions": [array of formatting improvements],
+  "improvements": [array of content improvements],
+  "matchingJobRoles": [array of suitable job roles]
 }
 
-Focus on:
-1. ATS compatibility and keyword optimization
-2. Format and structure improvements
-3. Content enhancement suggestions
-4. Relevant job roles this resume would match
+Analysis Guidelines:
+- ATS Score: Rate 0-100 based on keyword optimization, format compatibility, and content quality
+- Missing Keywords: Focus on industry-standard terms and skills
+- Format Suggestions: Address ATS compatibility issues
+- Improvements: Suggest content enhancements with specifics
+- Job Roles: List 3-5 roles this resume best matches
 
-Ensure the response is valid JSON only, no additional text.`;
+Be specific and actionable in your recommendations.`;
 
-      const result = await model.generateContent(prompt);
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.4,
+          topK: 40,
+          topP: 0.9,
+          maxOutputTokens: 3000,
+        },
+      });
+      
       const response = await result.response;
       return response.text();
     });
     
-    console.log('Raw AI response:', result);
+    console.log('Raw comprehensive analysis response:', result);
     
-    // Parse JSON response
+    // Parse and validate JSON response
     try {
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         
-        // Validate the structure
-        if (typeof parsed.atsScore === 'number' && 
-            Array.isArray(parsed.missingKeywords) &&
-            Array.isArray(parsed.formatSuggestions) &&
-            Array.isArray(parsed.improvements) &&
-            Array.isArray(parsed.matchingJobRoles)) {
-          
-          console.log('Analysis completed successfully:', parsed);
-          return parsed;
-        }
+        // Validate and clean the response
+        const analysis: AnalysisResult = {
+          atsScore: Math.max(0, Math.min(100, parsed.atsScore || 50)),
+          missingKeywords: Array.isArray(parsed.missingKeywords) ? parsed.missingKeywords.slice(0, 12) : [],
+          formatSuggestions: Array.isArray(parsed.formatSuggestions) ? parsed.formatSuggestions.slice(0, 8) : [],
+          improvements: Array.isArray(parsed.improvements) ? parsed.improvements.slice(0, 10) : [],
+          matchingJobRoles: Array.isArray(parsed.matchingJobRoles) ? parsed.matchingJobRoles.slice(0, 6) : []
+        };
+        
+        console.log('Comprehensive analysis completed successfully:', analysis);
+        return analysis;
       }
     } catch (parseError) {
       console.error('JSON parsing error:', parseError);
     }
     
-    // Fallback response if parsing fails
-    console.log('Using fallback analysis response');
+    // Enhanced fallback analysis
+    const textLower = cleanedText.toLowerCase();
+    const wordCount = cleanedText.split(/\s+/).length;
+    const hasContactInfo = /email|phone|contact/.test(textLower);
+    const hasExperience = /experience|work|employment/.test(textLower);
+    const hasEducation = /education|degree|university/.test(textLower);
+    const hasSkills = /skills|technical/.test(textLower);
+    
+    let baseScore = 30;
+    if (hasContactInfo) baseScore += 15;
+    if (hasExperience) baseScore += 20;
+    if (hasEducation) baseScore += 10;
+    if (hasSkills) baseScore += 15;
+    if (wordCount > 300) baseScore += 10;
+    
+    console.log('Using enhanced fallback comprehensive analysis response');
     return {
-      atsScore: 65,
+      atsScore: Math.min(100, baseScore),
       missingKeywords: ['Industry-specific keywords', 'Technical skills', 'Action verbs', 'Quantifiable achievements'],
-      formatSuggestions: ['Use bullet points consistently', 'Include quantifiable achievements', 'Optimize section headers for ATS', 'Ensure proper formatting'],
-      improvements: ['Add more specific achievements with metrics', 'Include relevant industry keywords', 'Improve job descriptions with action verbs', 'Enhance skills section'],
-      matchingJobRoles: ['Software Developer', 'Data Analyst', 'Project Manager', 'Business Analyst']
+      formatSuggestions: ['Use standard section headers', 'Include contact information', 'Add quantifiable achievements', 'Optimize for ATS parsing'],
+      improvements: ['Add specific metrics and numbers', 'Include more relevant keywords', 'Enhance job descriptions', 'Strengthen skills section'],
+      matchingJobRoles: ['Entry Level Positions', 'Administrative Roles', 'Customer Service', 'General Business Roles']
     };
     
   } catch (error: any) {
-    console.error('Resume analysis error:', error);
-    
-    if (error.status === 503 || error.message?.includes('overloaded')) {
-      throw new Error('AI service is currently overloaded. Please try again in a few minutes.');
-    } else if (error.status === 429 || error.message?.includes('quota')) {
-      throw new Error('API quota exceeded. Please try again later.');
-    } else {
-      throw new Error('Failed to analyze resume. Please check your internet connection and try again.');
-    }
+    console.error('Comprehensive resume analysis error:', error);
+    throw new Error('Failed to analyze resume comprehensively. Please try again.');
   }
 };
 
@@ -264,17 +305,17 @@ export const analyzeJobDescription = async (resumeText: string, jobDescription: 
   try {
     console.log('Starting job description analysis...');
     
-    const cleanedResume = resumeText.replace(/\s+/g, ' ').trim().substring(0, 15000);
-    const cleanedJobDesc = jobDescription.replace(/\s+/g, ' ').trim().substring(0, 10000);
+    const cleanedResume = cleanResumeText(resumeText).substring(0, 15000);
+    const cleanedJobDesc = cleanResumeText(jobDescription).substring(0, 10000);
     
-    if (cleanedResume.length < 50 || cleanedJobDesc.length < 50) {
-      throw new Error('Both resume and job description must be provided for analysis.');
+    if (cleanedResume.length < 100 || cleanedJobDesc.length < 100) {
+      throw new Error('Both resume and job description must contain substantial content for analysis.');
     }
     
     const result = await retryWithBackoff(async () => {
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
-      const prompt = `You are an expert ATS resume optimizer. Compare this resume against the job description and provide detailed analysis in JSON format.
+      const prompt = `Compare this resume against the job description and provide targeted recommendations.
 
 Resume:
 ${cleanedResume}
@@ -282,85 +323,75 @@ ${cleanedResume}
 Job Description:
 ${cleanedJobDesc}
 
-Analyze the gap between the resume and job requirements. Provide your analysis as a valid JSON object with exactly this structure:
+Analyze the gap and provide ONLY a valid JSON object:
 {
-  "requiredKeywords": ["keyword1", "keyword2", "keyword3"],
-  "missingFromResume": ["missing1", "missing2", "missing3"],
-  "recommendedSkills": ["skill1", "skill2", "skill3"],
+  "requiredKeywords": [8-12 key required keywords from job description],
+  "missingFromResume": [keywords from job description missing in resume],
+  "recommendedSkills": [6-10 additional skills to strengthen application],
   "keywordInsertions": [
     {
       "keyword": "specific keyword",
-      "suggestion": "Natural sentence showing how to incorporate this keyword",
+      "suggestion": "Natural sentence to incorporate this keyword",
       "section": "Experience/Skills/Summary"
     }
   ]
 }
 
-Focus on:
-1. Extract 8-12 key required keywords/skills from the job description
-2. Identify which of these keywords are missing from the resume
-3. Recommend 6-10 additional skills that would strengthen the application
-4. Provide 5-8 natural, contextual suggestions for incorporating missing keywords into specific resume sections
+Focus on actionable, specific recommendations. Make suggestions natural and professional.`;
 
-Make keyword insertions sound natural and professional, not forced. Ensure the response is valid JSON only, no additional text.`;
-
-      const result = await model.generateContent(prompt);
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 40,
+          topP: 0.8,
+          maxOutputTokens: 2500,
+        },
+      });
+      
       const response = await result.response;
       return response.text();
     });
     
     console.log('Raw job description analysis response:', result);
     
-    // Parse JSON response
     try {
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         
-        // Validate the structure
-        if (Array.isArray(parsed.requiredKeywords) && 
-            Array.isArray(parsed.missingFromResume) &&
-            Array.isArray(parsed.recommendedSkills) &&
-            Array.isArray(parsed.keywordInsertions)) {
-          
-          console.log('Job description analysis completed successfully:', parsed);
-          return parsed;
-        }
+        const analysis: JobDescriptionAnalysis = {
+          requiredKeywords: Array.isArray(parsed.requiredKeywords) ? parsed.requiredKeywords.slice(0, 12) : [],
+          missingFromResume: Array.isArray(parsed.missingFromResume) ? parsed.missingFromResume.slice(0, 10) : [],
+          recommendedSkills: Array.isArray(parsed.recommendedSkills) ? parsed.recommendedSkills.slice(0, 10) : [],
+          keywordInsertions: Array.isArray(parsed.keywordInsertions) ? parsed.keywordInsertions.slice(0, 8) : []
+        };
+        
+        console.log('Job description analysis completed successfully:', analysis);
+        return analysis;
       }
     } catch (parseError) {
       console.error('JSON parsing error:', parseError);
     }
     
-    // Fallback response if parsing fails
-    console.log('Using fallback job description analysis response');
+    // Enhanced fallback
+    console.log('Using enhanced fallback job description analysis response');
     return {
-      requiredKeywords: ['Leadership', 'Project Management', 'Communication', 'Analytics'],
-      missingFromResume: ['Agile Methodology', 'Stakeholder Management', 'Data Analysis'],
-      recommendedSkills: ['Cross-functional Collaboration', 'Process Improvement', 'Strategic Planning'],
+      requiredKeywords: ['Leadership', 'Communication', 'Problem Solving', 'Team Collaboration'],
+      missingFromResume: ['Strategic Planning', 'Data Analysis', 'Project Management'],
+      recommendedSkills: ['Process Improvement', 'Cross-functional Collaboration', 'Results-oriented'],
       keywordInsertions: [
         {
-          keyword: 'Agile Methodology',
-          suggestion: 'Led cross-functional teams using Agile methodology to deliver projects 20% faster',
+          keyword: 'Strategic Planning',
+          suggestion: 'Contributed to strategic planning initiatives that improved operational efficiency',
           section: 'Experience'
-        },
-        {
-          keyword: 'Stakeholder Management',
-          suggestion: 'Experienced in stakeholder management and building consensus across departments',
-          section: 'Summary'
         }
       ]
     };
     
   } catch (error: any) {
     console.error('Job description analysis error:', error);
-    
-    if (error.status === 503 || error.message?.includes('overloaded')) {
-      throw new Error('AI service is currently overloaded. Please try again in a few minutes.');
-    } else if (error.status === 429 || error.message?.includes('quota')) {
-      throw new Error('API quota exceeded. Please try again later.');
-    } else {
-      throw new Error('Failed to analyze job description. Please try again.');
-    }
+    throw new Error('Failed to analyze job description match. Please try again.');
   }
 };
 

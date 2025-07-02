@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -89,16 +90,17 @@ const ResumeAnalyzer = () => {
   const [copiedSuggestions, setCopiedSuggestions] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
-  // Real-time analysis with debouncing
+  // Real-time analysis with improved debouncing
   const performRealTimeAnalysis = useCallback(async (text: string, jobRole: string) => {
-    if (text.length < 50 || !jobRole) return;
+    if (text.length < 100 || !jobRole) return;
     
     setIsRealTimeAnalyzing(true);
     try {
       const result = await analyzeResumeRealTime(text, jobRole);
       setRealTimeAnalysis(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Real-time analysis error:', error);
+      // Don't show error toast for real-time analysis to avoid spam
     } finally {
       setIsRealTimeAnalyzing(false);
     }
@@ -106,17 +108,17 @@ const ResumeAnalyzer = () => {
 
   // Job description analysis
   const performJobAnalysis = useCallback(async (resumeText: string, jobDesc: string) => {
-    if (!resumeText || !jobDesc || resumeText.length < 50 || jobDesc.length < 50) return;
+    if (!resumeText || !jobDesc || resumeText.length < 100 || jobDesc.length < 100) return;
     
     setIsJobAnalyzing(true);
     try {
       const result = await analyzeJobDescription(resumeText, jobDesc);
       setJobAnalysis(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Job analysis error:', error);
       toast({
-        title: "Job Analysis Failed",
-        description: "Failed to analyze job description. Please try again.",
+        title: "Job Analysis Error",
+        description: "Unable to analyze job description match. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -124,24 +126,24 @@ const ResumeAnalyzer = () => {
     }
   }, [toast]);
 
-  // Debounced real-time analysis
+  // Improved debounced real-time analysis
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (resumeText && selectedJobRole) {
+      if (resumeText && selectedJobRole && resumeText.length > 100) {
         performRealTimeAnalysis(resumeText, selectedJobRole);
       }
-    }, 1000); // 1 second debounce
+    }, 2000); // Increased to 2 seconds to reduce API calls
 
     return () => clearTimeout(timeoutId);
   }, [resumeText, selectedJobRole, performRealTimeAnalysis]);
 
-  // Debounced job analysis
+  // Improved debounced job analysis
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (resumeText && jobDescription) {
+      if (resumeText && jobDescription && resumeText.length > 100 && jobDescription.length > 100) {
         performJobAnalysis(resumeText, jobDescription);
       }
-    }, 1500);
+    }, 3000); // Increased to 3 seconds for job description analysis
 
     return () => clearTimeout(timeoutId);
   }, [resumeText, jobDescription, performJobAnalysis]);
@@ -169,13 +171,17 @@ const ResumeAnalyzer = () => {
       
       setUploadProgress(70);
       
-      text = text.replace(/\s+/g, ' ').trim();
+      // Improved text cleaning
+      text = text
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s.,;:()\-@]/g, '')
+        .trim();
       
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
       
-      if (text.length < 100) {
-        throw new Error('Document appears to be empty or contains insufficient content for analysis. Please try a different file format.');
+      if (text.length < 150) {
+        throw new Error('Document appears to contain insufficient content for analysis. Please ensure the file contains a complete resume with substantive text.');
       }
       
       console.log('Text extraction successful, length:', text.length);
@@ -206,6 +212,8 @@ const ResumeAnalyzer = () => {
       setResumeText(text);
       setFileName(file.name);
       setAnalysis(null);
+      setRealTimeAnalysis(null);
+      setJobAnalysis(null);
       setIsRetrying(false);
       
       toast({
@@ -216,7 +224,7 @@ const ResumeAnalyzer = () => {
       console.error('Upload error:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to process document. Please try with a different file.",
+        description: error instanceof Error ? error.message : "Failed to process document. Please try with a different file format or check if the file contains readable text.",
         variant: "destructive",
       });
     }
@@ -238,7 +246,16 @@ const ResumeAnalyzer = () => {
     if (!resumeText.trim()) {
       toast({
         title: "No Resume Content",
-        description: "Please upload a resume document to analyze.",
+        description: "Please upload a resume document or paste resume text to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resumeText.length < 200) {
+      toast({
+        title: "Resume Too Short",
+        description: "Please provide a more complete resume for accurate analysis.",
         variant: "destructive",
       });
       return;
@@ -249,7 +266,7 @@ const ResumeAnalyzer = () => {
     setIsRetrying(false);
     
     try {
-      console.log('Starting resume analysis...');
+      console.log('Starting comprehensive resume analysis...');
       const result = await analyzeResume(resumeText);
       console.log('Analysis completed successfully:', result);
       setAnalysis(result);
@@ -270,13 +287,13 @@ const ResumeAnalyzer = () => {
         setIsRetrying(true);
         toast({
           title: "AI Service Temporarily Unavailable",
-          description: "The AI service is overloaded. You can retry in a moment.",
+          description: "The AI service is overloaded. Please wait a moment and try again.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Analysis Failed",
-          description: error.message || "Please check your internet connection and try again.",
+          description: error.message || "Unable to analyze resume. Please check your content and try again.",
           variant: "destructive",
         });
       }
