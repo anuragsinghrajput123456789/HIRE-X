@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { analyzeResume, analyzeResumeRealTime, analyzeJobDescription, type AnalysisResult, type RealTimeAnalysis } from '../services/geminiApi';
+import { analyzeResume, type AnalysisResult } from '../services/geminiApi';
 import { extractTextFromPDF, extractTextFromWordDoc } from '../services/pdfTextExtractor';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -62,90 +62,15 @@ const jobRoles = [
   'Digital Marketing Specialist'
 ];
 
-interface JobAnalysis {
-  requiredKeywords: string[];
-  missingFromResume: string[];
-  recommendedSkills: string[];
-  keywordInsertions: Array<{
-    keyword: string;
-    suggestion: string;
-    section: string;
-  }>;
-}
-
 const ResumeAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
   const [fileName, setFileName] = useState('');
   const [selectedJobRole, setSelectedJobRole] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isRealTimeAnalyzing, setIsRealTimeAnalyzing] = useState(false);
-  const [isJobAnalyzing, setIsJobAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [realTimeAnalysis, setRealTimeAnalysis] = useState<RealTimeAnalysis | null>(null);
-  const [jobAnalysis, setJobAnalysis] = useState<JobAnalysis | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [copiedSuggestions, setCopiedSuggestions] = useState<Set<number>>(new Set());
   const { toast } = useToast();
-
-  // Real-time analysis with improved debouncing
-  const performRealTimeAnalysis = useCallback(async (text: string, jobRole: string) => {
-    if (text.length < 100 || !jobRole) return;
-    
-    setIsRealTimeAnalyzing(true);
-    try {
-      const result = await analyzeResumeRealTime(text, jobRole);
-      setRealTimeAnalysis(result);
-    } catch (error: any) {
-      console.error('Real-time analysis error:', error);
-      // Don't show error toast for real-time analysis to avoid spam
-    } finally {
-      setIsRealTimeAnalyzing(false);
-    }
-  }, []);
-
-  // Job description analysis
-  const performJobAnalysis = useCallback(async (resumeText: string, jobDesc: string) => {
-    if (!resumeText || !jobDesc || resumeText.length < 100 || jobDesc.length < 100) return;
-    
-    setIsJobAnalyzing(true);
-    try {
-      const result = await analyzeJobDescription(resumeText, jobDesc);
-      setJobAnalysis(result);
-    } catch (error: any) {
-      console.error('Job analysis error:', error);
-      toast({
-        title: "Job Analysis Error",
-        description: "Unable to analyze job description match. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsJobAnalyzing(false);
-    }
-  }, [toast]);
-
-  // Improved debounced real-time analysis
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (resumeText && selectedJobRole && resumeText.length > 100) {
-        performRealTimeAnalysis(resumeText, selectedJobRole);
-      }
-    }, 2000); // Increased to 2 seconds to reduce API calls
-
-    return () => clearTimeout(timeoutId);
-  }, [resumeText, selectedJobRole, performRealTimeAnalysis]);
-
-  // Improved debounced job analysis
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (resumeText && jobDescription && resumeText.length > 100 && jobDescription.length > 100) {
-        performJobAnalysis(resumeText, jobDescription);
-      }
-    }, 3000); // Increased to 3 seconds for job description analysis
-
-    return () => clearTimeout(timeoutId);
-  }, [resumeText, jobDescription, performJobAnalysis]);
 
   const extractTextFromFile = async (file: File): Promise<string> => {
     try {
@@ -211,8 +136,6 @@ const ResumeAnalyzer = () => {
       setResumeText(text);
       setFileName(file.name);
       setAnalysis(null);
-      setRealTimeAnalysis(null);
-      setJobAnalysis(null);
       setIsRetrying(false);
       
       toast({
@@ -301,30 +224,6 @@ const ResumeAnalyzer = () => {
     }
   };
 
-  const copySuggestion = async (text: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedSuggestions(prev => new Set([...prev, index]));
-      setTimeout(() => {
-        setCopiedSuggestions(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(index);
-          return newSet;
-        });
-      }, 2000);
-      toast({
-        title: "Copied!",
-        description: "Suggestion copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Copy Failed",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
   const getScoreIcon = (score: number) => {
     if (score >= 80) return <Award className="w-8 h-8 text-green-500" />;
     if (score >= 60) return <Target className="w-8 h-8 text-yellow-500" />;
@@ -364,7 +263,7 @@ const ResumeAnalyzer = () => {
             </div>
           </div>
           <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Get comprehensive ATS analysis, real-time feedback, and AI-powered recommendations to optimize your resume for your dream job.
+            Get comprehensive ATS analysis and AI-powered recommendations to optimize your resume for your dream job.
           </p>
         </div>
 
@@ -464,57 +363,15 @@ const ResumeAnalyzer = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Job Description Card */}
-            <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/10 rounded-xl">
-                    <Wand2 className="w-6 h-6 text-purple-600" />
-                  </div>
-                  Job Description Analysis
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
-                    <Star className="w-3 h-3 mr-1" />
-                    AI-Powered
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <Label htmlFor="job-description" className="text-base font-semibold text-purple-800 dark:text-purple-200">
-                    Paste the job description to get targeted recommendations:
-                  </Label>
-                  <Textarea
-                    id="job-description"
-                    placeholder="Paste the complete job description here to get AI-powered keyword analysis and recommendations..."
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    className="min-h-[160px] text-base border-2 hover:border-purple-400 focus:border-purple-500 transition-colors resize-vertical"
-                  />
-                  {jobDescription && (
-                    <p className="text-sm text-purple-600 dark:text-purple-400">
-                      {jobDescription.length.toLocaleString()} characters
-                    </p>
-                  )}
-                </div>
-                
-                {isJobAnalyzing && (
-                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 py-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="font-medium">Analyzing job requirements...</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
-          {/* Right Column - Combined Analysis */}
+          {/* Right Column - Analysis Results */}
           <div className="space-y-6">
             <Card className="border-2 border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-teal-800 dark:text-teal-200 flex items-center gap-3">
                   <div className="p-2 bg-teal-500/10 rounded-xl">
-                    <Sparkles className="w-6 h-6 text-teal-600" />
+                    <Brain className="w-6 h-6 text-teal-600" />
                   </div>
                   AI Resume Analysis
                 </CardTitle>
@@ -538,255 +395,109 @@ const ResumeAnalyzer = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="live-analysis" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="live-analysis" className="flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
-                      Live Analysis
-                    </TabsTrigger>
-                    <TabsTrigger value="complete-analysis" className="flex items-center gap-2">
-                      <Brain className="w-4 h-4" />
-                      Complete Analysis
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="live-analysis" className="space-y-6">
-                    {/* Real-time Analysis Section */}
-                    {realTimeAnalysis && selectedJobRole ? (
-                      <div className="space-y-4">
-                        {/* ATS Score Display */}
-                        <div className="text-center p-6 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl text-white shadow-lg">
-                          <div className="flex items-center justify-center mb-3">
-                            <Zap className="w-8 h-8" />
-                          </div>
-                          <h3 className="text-lg font-bold mb-2">Live ATS Score</h3>
-                          <div className="text-3xl font-bold mb-2">
-                            {realTimeAnalysis.keywordMatchScore}/100
-                          </div>
-                          <Progress value={realTimeAnalysis.keywordMatchScore} className="w-full h-3 bg-white/20" />
-                        </div>
-
-                        {/* Keyword Analysis */}
-                        <div className="grid grid-cols-1 gap-4">
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
-                              <CheckCircle className="w-5 h-5" />
-                              Found Keywords ({realTimeAnalysis.foundKeywords.length})
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {realTimeAnalysis.foundKeywords.map((keyword, index) => (
-                                <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
-                              <XCircle className="w-5 h-5" />
-                              Missing Keywords ({realTimeAnalysis.missingKeywords.length})
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {realTimeAnalysis.missingKeywords.map((keyword, index) => (
-                                <Badge key={index} variant="outline" className="text-xs border-red-300 text-red-700 bg-red-50">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                              <Settings className="w-5 h-5" />
-                              Resume Structure
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {Object.entries(realTimeAnalysis.structureAnalysis).map(([section, present]) => (
-                                <div key={section} className="flex items-center gap-2 text-sm">
-                                  {present ? (
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 text-red-500" />
-                                  )}
-                                  <span className={present ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                                    {section}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Job Description Analysis */}
-                        {jobAnalysis && (
-                          <div className="space-y-4">
-                            <h4 className="font-bold text-lg flex items-center gap-2 text-purple-700 dark:text-purple-300">
-                              <Search className="w-5 h-5" />
-                              Job Match Analysis
-                            </h4>
-                            
-                            <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                              <h5 className="font-bold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                                <Wand2 className="w-5 h-5" />
-                                AI Keyword Insertion Tips
-                              </h5>
-                              <div className="space-y-3">
-                                {jobAnalysis.keywordInsertions.map((insertion, index) => (
-                                  <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
-                                    <div className="flex items-start justify-between mb-2">
-                                      <div className="flex items-center gap-2">
-                                        <Badge className="text-xs bg-blue-600">
-                                          {insertion.keyword}
-                                        </Badge>
-                                        <span className="text-xs text-blue-600 font-medium">in {insertion.section}</span>
-                                      </div>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-6 px-2 text-xs"
-                                        onClick={() => copySuggestion(insertion.suggestion, index)}
-                                      >
-                                        {copiedSuggestions.has(index) ? (
-                                          <CheckCheck className="w-3 h-3" />
-                                        ) : (
-                                          <Copy className="w-3 h-3" />
-                                        )}
-                                      </Button>
-                                    </div>
-                                    <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                                      "{insertion.suggestion}"
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                {analysis ? (
+                  <div className="space-y-6">
+                    {/* ATS Score Display */}
+                    <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-2xl text-white shadow-2xl transform hover:scale-105 transition-all duration-300`}>
+                      <div className="flex items-center justify-center mb-4">
+                        {getScoreIcon(analysis.atsScore)}
                       </div>
-                    ) : (
-                      <div className="text-center py-16">
-                        <div className="space-y-6">
-                          <div className="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-full w-fit mx-auto">
-                            <Zap className="w-16 h-16 text-orange-600 opacity-60" />
-                          </div>
-                          <div>
-                            <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">Live Analysis Ready</p>
-                            <p className="text-orange-600 dark:text-orange-400 mt-3 text-lg">
-                              {!selectedJobRole ? 'Select a job role to start live analysis' : 'Upload or paste your resume for real-time feedback'}
-                            </p>
-                          </div>
+                      <h3 className="text-2xl font-bold mb-3">ATS Compatibility Score</h3>
+                      <div className="text-5xl font-bold mb-4">
+                        {analysis.atsScore}/100
+                      </div>
+                      <p className="text-xl font-bold mb-4">
+                        {getScoreLabel(analysis.atsScore)}
+                      </p>
+                      <Progress value={analysis.atsScore} className="w-full h-4 bg-white/20" />
+                    </div>
+
+                    {/* Detailed Analysis */}
+                    <div className="grid grid-cols-1 gap-6">
+                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-red-200">
+                        <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
+                          <XCircle className="w-5 h-5" />
+                          Format Issues to Fix
+                        </h4>
+                        <ul className="space-y-2">
+                          {analysis.formatSuggestions.map((suggestion, index) => (
+                            <li key={index} className="flex items-start gap-3 text-sm">
+                              <ArrowRight className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-red-700 dark:text-red-300">{suggestion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-blue-200">
+                        <h4 className="font-bold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                          <TrendingUp className="w-5 h-5" />
+                          Content Improvements
+                        </h4>
+                        <ul className="space-y-2">
+                          {analysis.improvements.map((improvement, index) => (
+                            <li key={index} className="flex items-start gap-3 text-sm">
+                              <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-blue-700 dark:text-blue-300">{improvement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-green-200">
+                        <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
+                          <Plus className="w-5 h-5" />
+                          Keywords to Add
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.missingKeywords.map((keyword, index) => (
+                            <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
+                              + {keyword}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </TabsContent>
 
-                  <TabsContent value="complete-analysis" className="space-y-6">
-                    {analysis ? (
-                      <div className="space-y-6">
-                        {/* ATS Score Display */}
-                        <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-2xl text-white shadow-2xl transform hover:scale-105 transition-all duration-300`}>
-                          <div className="flex items-center justify-center mb-4">
-                            {getScoreIcon(analysis.atsScore)}
-                          </div>
-                          <h3 className="text-2xl font-bold mb-3">ATS Compatibility Score</h3>
-                          <div className="text-5xl font-bold mb-4">
-                            {analysis.atsScore}/100
-                          </div>
-                          <p className="text-xl font-bold mb-4">
-                            {getScoreLabel(analysis.atsScore)}
-                          </p>
-                          <Progress value={analysis.atsScore} className="w-full h-4 bg-white/20" />
-                        </div>
-
-                        {/* Detailed Analysis */}
-                        <div className="grid grid-cols-1 gap-6">
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-red-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
-                              <XCircle className="w-5 h-5" />
-                              Format Issues to Fix
-                            </h4>
-                            <ul className="space-y-2">
-                              {analysis.formatSuggestions.map((suggestion, index) => (
-                                <li key={index} className="flex items-start gap-3 text-sm">
-                                  <ArrowRight className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                  <span className="text-red-700 dark:text-red-300">{suggestion}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-blue-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                              <TrendingUp className="w-5 h-5" />
-                              Content Improvements
-                            </h4>
-                            <ul className="space-y-2">
-                              {analysis.improvements.map((improvement, index) => (
-                                <li key={index} className="flex items-start gap-3 text-sm">
-                                  <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                  <span className="text-blue-700 dark:text-blue-300">{improvement}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-green-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
-                              <Plus className="w-5 h-5" />
-                              Keywords to Add
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {analysis.missingKeywords.map((keyword, index) => (
-                                <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
-                                  + {keyword}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                            <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
-                              <Award className="w-5 h-5" />
-                              Best Matching Roles ({analysis.matchingJobRoles.length})
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {analysis.matchingJobRoles.map((role, index) => (
-                                <Badge key={index} variant="secondary" className="text-sm border-purple-300 text-purple-700 bg-purple-50 px-3 py-1">
-                                  {role}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <Button
-                          onClick={handleAnalyze}
-                          variant="outline"
-                          disabled={isAnalyzing}
-                          className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300"
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Re-analyze Resume
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-16">
-                        <div className="space-y-6">
-                          <div className="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-full w-fit mx-auto">
-                            <Brain className="w-16 h-16 text-teal-600 opacity-60" />
-                          </div>
-                          <div>
-                            <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Complete Analysis</p>
-                            <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
-                              Upload your resume and click "Analyze Resume" for comprehensive ATS scoring
-                            </p>
-                          </div>
+                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
+                        <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                          <Award className="w-5 h-5" />
+                          Best Matching Roles ({analysis.matchingJobRoles.length})
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.matchingJobRoles.map((role, index) => (
+                            <Badge key={index} variant="secondary" className="text-sm border-purple-300 text-purple-700 bg-purple-50 px-3 py-1">
+                              {role}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                    </div>
+
+                    <Button
+                      onClick={handleAnalyze}
+                      variant="outline"
+                      disabled={isAnalyzing}
+                      className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Re-analyze Resume
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="space-y-6">
+                      <div className="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-full w-fit mx-auto">
+                        <Brain className="w-16 h-16 text-teal-600 opacity-60" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Complete Analysis</p>
+                        <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
+                          Upload your resume and click "Analyze Resume" for comprehensive ATS scoring
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {isRetrying && (
                   <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-xl">
