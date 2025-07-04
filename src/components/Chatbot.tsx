@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Sparkles, MessageCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -20,7 +20,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your AI Resume Assistant. I can help you with:\n\n• Resume writing tips\n• Job search strategies\n• Interview preparation\n• Career advice\n• ATS optimization\n\nWhat would you like to know?",
+      content: "🚀 **Welcome to your comprehensive AI Career Assistant!**\n\nI'm your dedicated career expert, ready to provide personalized guidance across all aspects of your professional journey:\n\n✨ **Resume & Cover Letter Optimization**\n🎯 **Interview Strategies & Mock Practice**\n🔍 **Job Search Tactics & Market Insights**\n💼 **Career Planning & Transition Guidance**\n💰 **Salary Negotiation & Benefits Analysis**\n📈 **Professional Development & Skill Building**\n🤝 **Networking Strategies & Personal Branding**\n🏢 **Industry Trends & Company Research**\n\n**What specific career challenge would you like to tackle today? I'm here to provide actionable, personalized advice!**",
       role: 'assistant',
       timestamp: new Date()
     }
@@ -91,33 +91,40 @@ Keep your response concise, practical, and professional. Use markdown formatting
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <Card className="h-[600px] flex flex-col">
-        <CardHeader>
-          <CardTitle className="gradient-text flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            AI Resume Assistant
+      <Card className="h-[700px] flex flex-col bg-gradient-to-br from-white/95 to-indigo-50/80 backdrop-blur-sm border-indigo-200/50 shadow-2xl">
+        <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 border-b border-indigo-200/30">
+          <CardTitle className="text-2xl font-bold flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 rounded-2xl shadow-lg">
+              <MessageCircle className="h-7 w-7 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                AI Career Assistant
+              </span>
+              <span className="text-sm text-gray-500 font-normal">Your Personal Career Coach</span>
+            </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col">
+        <CardContent className="flex-1 flex flex-col p-6 space-y-4">
           <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex items-start gap-3 ${
+                  className={`flex items-start gap-4 ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
                   {message.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <Bot className="h-5 w-5 text-white" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    className={`max-w-[85%] rounded-2xl px-5 py-4 shadow-lg ${
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
+                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 text-white shadow-indigo-500/25'
+                        : 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200/50 dark:border-gray-600/50'
                     }`}
                   >
                     {message.role === 'assistant' ? (
@@ -125,35 +132,40 @@ Keep your response concise, practical, and professional. Use markdown formatting
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm font-medium">{message.content}</p>
                     )}
                   </div>
                   {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                      <User className="h-4 w-4 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <User className="h-5 w-5 text-white" />
                     </div>
                   )}
                 </div>
               ))}
               {isLoading && (
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-primary" />
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 flex items-center justify-center shadow-lg">
+                    <Bot className="h-5 w-5 text-white" />
                   </div>
-                  <div className="bg-muted rounded-lg px-4 py-2">
-                    <p className="text-sm">Thinking...</p>
+                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl px-5 py-4 border border-gray-200/50 dark:border-gray-600/50 shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <span className="text-sm text-gray-600 ml-2 font-medium">Thinking...</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </ScrollArea>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-3 items-end pt-4 border-t border-indigo-200/30">
             <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about resumes, job search, or career advice..."
-              className="flex-1"
+              placeholder="Ask me anything about your career, resume optimization, job search strategies, or interview preparation..."
+              className="flex-1 min-h-[50px] max-h-[120px] resize-none border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl bg-white/80 dark:bg-gray-800/80"
               rows={2}
               disabled={isLoading}
             />
@@ -161,9 +173,9 @@ Keep your response concise, practical, and professional. Use markdown formatting
               onClick={sendMessage}
               disabled={isLoading || !inputMessage.trim()}
               size="icon"
-              className="self-end"
+              className="h-12 w-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 hover:from-indigo-600 hover:via-purple-600 hover:to-cyan-700 shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 rounded-xl"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             </Button>
           </div>
         </CardContent>
