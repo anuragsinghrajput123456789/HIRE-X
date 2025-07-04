@@ -90,18 +90,18 @@ Keep your response concise, practical, and professional. Use markdown formatting
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <Card className="h-[700px] flex flex-col bg-gradient-to-br from-white/95 to-indigo-50/80 backdrop-blur-sm border-indigo-200/50 shadow-2xl">
-        <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 border-b border-indigo-200/30">
+    <div className="container mx-auto px-4 py-6 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 min-h-screen">
+      <Card className="h-[700px] flex flex-col bg-gradient-to-br from-gray-800/95 to-slate-900/95 backdrop-blur-sm border-slate-700/50 shadow-2xl">
+        <CardHeader className="bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 border-b border-slate-700/50">
           <CardTitle className="text-2xl font-bold flex items-center gap-4">
             <div className="p-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 rounded-2xl shadow-lg">
               <MessageCircle className="h-7 w-7 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 AI Career Assistant
               </span>
-              <span className="text-sm text-gray-500 font-normal">Your Personal Career Coach</span>
+              <span className="text-sm text-gray-400 font-normal">Your Personal Career Coach</span>
             </div>
           </CardTitle>
         </CardHeader>
@@ -124,11 +124,11 @@ Keep your response concise, practical, and professional. Use markdown formatting
                     className={`max-w-[85%] rounded-2xl px-5 py-4 shadow-lg ${
                       message.role === 'user'
                         ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 text-white shadow-indigo-500/25'
-                        : 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200/50 dark:border-gray-600/50'
+                        : 'bg-gradient-to-br from-gray-700/90 to-slate-800/90 border border-slate-600/50 text-gray-100'
                     }`}
                   >
                     {message.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <div className="prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
                     ) : (
@@ -136,7 +136,7 @@ Keep your response concise, practical, and professional. Use markdown formatting
                     )}
                   </div>
                   {message.role === 'user' && (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 flex items-center justify-center shadow-lg flex-shrink-0">
                       <User className="h-5 w-5 text-white" />
                     </div>
                   )}
@@ -147,25 +147,25 @@ Keep your response concise, practical, and professional. Use markdown formatting
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-600 flex items-center justify-center shadow-lg">
                     <Bot className="h-5 w-5 text-white" />
                   </div>
-                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl px-5 py-4 border border-gray-200/50 dark:border-gray-600/50 shadow-lg">
+                  <div className="bg-gradient-to-br from-gray-700/90 to-slate-800/90 rounded-2xl px-5 py-4 border border-slate-600/50 shadow-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                       <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                      <span className="text-sm text-gray-600 ml-2 font-medium">Thinking...</span>
+                      <span className="text-sm text-gray-300 ml-2 font-medium">Thinking...</span>
                     </div>
                   </div>
                 </div>
               )}
             </div>
           </ScrollArea>
-          <div className="flex gap-3 items-end pt-4 border-t border-indigo-200/30">
+          <div className="flex gap-3 items-end pt-4 border-t border-slate-700/50">
             <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything about your career, resume optimization, job search strategies, or interview preparation..."
-              className="flex-1 min-h-[50px] max-h-[120px] resize-none border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl bg-white/80 dark:bg-gray-800/80"
+              className="flex-1 min-h-[50px] max-h-[120px] resize-none border-slate-600 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl bg-gray-700/80 text-gray-100 placeholder:text-gray-400"
               rows={2}
               disabled={isLoading}
             />

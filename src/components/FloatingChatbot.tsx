@@ -130,20 +130,20 @@ Keep your response concise, practical, and professional. Use markdown formatting
           isMobile 
             ? 'bottom-4 right-4 left-4 top-20' 
             : 'bottom-6 right-6 w-96'
-        } bg-gradient-to-br from-white/95 via-indigo-50/90 to-purple-50/95 dark:from-gray-900/95 dark:to-indigo-900/95 backdrop-blur-xl border border-indigo-200/50 dark:border-indigo-700/50 shadow-2xl z-50 transition-all duration-300 ${
+        } bg-gradient-to-br from-gray-800/95 via-slate-800/95 to-gray-900/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl z-50 transition-all duration-300 ${
           isMinimized ? 'h-16' : isMobile ? 'h-full' : 'h-[500px]'
         } overflow-hidden`}>
-          <CardHeader className={`${isMobile ? 'pb-3 px-4 pt-4' : 'pb-2'} bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-200/30`}>
+          <CardHeader className={`${isMobile ? 'pb-3 px-4 pt-4' : 'pb-2'} bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 border-b border-slate-700/50`}>
             <div className="flex items-center justify-between">
               <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'} font-bold flex items-center gap-3`}>
                 <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg`}>
                   <Bot className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-white`} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                     Career Assistant
                   </span>
-                  <span className="text-xs text-gray-500 font-normal">AI-Powered Career Coach</span>
+                  <span className="text-xs text-gray-400 font-normal">AI-Powered Career Coach</span>
                 </div>
               </CardTitle>
               <div className="flex items-center gap-1">
@@ -152,12 +152,12 @@ Keep your response concise, practical, and professional. Use markdown formatting
                     variant="ghost"
                     size="sm"
                     onClick={toggleMinimize}
-                    className="h-8 w-8 p-0 hover:bg-indigo-100 dark:hover:bg-indigo-800 rounded-lg transition-colors"
+                    className="h-8 w-8 p-0 hover:bg-slate-700/50 rounded-lg transition-colors"
                   >
                     {isMinimized ? (
-                      <Maximize2 className="h-4 w-4 text-indigo-600" />
+                      <Maximize2 className="h-4 w-4 text-indigo-400" />
                     ) : (
-                      <Minimize2 className="h-4 w-4 text-indigo-600" />
+                      <Minimize2 className="h-4 w-4 text-indigo-400" />
                     )}
                   </Button>
                 )}
@@ -165,9 +165,9 @@ Keep your response concise, practical, and professional. Use markdown formatting
                   variant="ghost"
                   size="sm"
                   onClick={toggleChat}
-                  className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-800 rounded-lg transition-colors"
+                  className="h-8 w-8 p-0 hover:bg-red-800/50 rounded-lg transition-colors"
                 >
-                  <X className="h-4 w-4 text-red-600" />
+                  <X className="h-4 w-4 text-red-400" />
                 </Button>
               </div>
             </div>
@@ -195,11 +195,11 @@ Keep your response concise, practical, and professional. Use markdown formatting
                         className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'} rounded-2xl px-4 py-3 shadow-lg ${
                           message.role === 'user'
                             ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-purple-500/25'
-                            : 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-600/50'
+                            : 'bg-gradient-to-br from-gray-700/90 to-slate-800/90 text-gray-100 border border-slate-600/50'
                         }`}
                       >
                         {message.role === 'assistant' ? (
-                          <div className={`prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                          <div className={`prose prose-sm prose-invert max-w-none ${isMobile ? 'text-xs' : 'text-xs'}`}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                           </div>
                         ) : (
@@ -207,7 +207,7 @@ Keep your response concise, practical, and professional. Use markdown formatting
                         )}
                       </div>
                       {message.role === 'user' && (
-                        <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                        <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0 shadow-lg`}>
                           <User className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-white`} />
                         </div>
                       )}
@@ -218,7 +218,7 @@ Keep your response concise, practical, and professional. Use markdown formatting
                       <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg`}>
                         <Bot className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-white`} />
                       </div>
-                      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl px-4 py-3 border border-gray-200/50 dark:border-gray-600/50 shadow-lg">
+                      <div className="bg-gradient-to-br from-gray-700/90 to-slate-800/90 rounded-2xl px-4 py-3 border border-slate-600/50 shadow-lg">
                         <div className="flex items-center gap-1">
                           <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
                           <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -239,7 +239,7 @@ Keep your response concise, practical, and professional. Use markdown formatting
                     isMobile 
                       ? 'min-h-[36px] max-h-[60px] text-sm' 
                       : 'min-h-[40px] max-h-[80px]'
-                  } resize-none border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl bg-white/80 dark:bg-gray-800/80`}
+                  } resize-none border-slate-600 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl bg-gray-700/80 text-gray-100 placeholder:text-gray-400`}
                   rows={1}
                   disabled={isLoading}
                 />

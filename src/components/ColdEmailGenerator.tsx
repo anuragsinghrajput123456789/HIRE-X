@@ -112,20 +112,20 @@ const ColdEmailGenerator = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 min-h-screen p-6">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Input Form */}
-        <Card className="bg-gradient-to-br from-white/90 to-orange-50/50 backdrop-blur-sm border-orange-200/50 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-t-lg">
+        <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
+          <CardHeader className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-t-lg border-b border-slate-700/50">
             <CardTitle className="flex items-center gap-3 text-xl">
               <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg shadow-lg">
                 <Mail className="h-6 w-6 text-white" />
               </div>
-              <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent font-bold">
+              <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-bold">
                 Email Configuration
               </span>
             </CardTitle>
-            <CardDescription className="text-gray-600 font-medium">
+            <CardDescription className="text-gray-300 font-medium">
               Provide details to create your personalized cold email
             </CardDescription>
           </CardHeader>
@@ -137,27 +137,27 @@ const ColdEmailGenerator = () => {
                   <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wide text-sm">Recipient Details</h3>
+                  <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Recipient Details</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="recipientName" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="recipientName" className="text-sm font-semibold text-gray-300">
                       Recipient Name *
                     </Label>
                     <Input
                       id="recipientName"
                       {...register('recipientName', { required: 'Recipient name is required' })}
                       placeholder="John Smith"
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                     {errors.recipientName && (
-                      <p className="text-sm text-red-500 font-medium">{errors.recipientName.message}</p>
+                      <p className="text-sm text-red-400 font-medium">{errors.recipientName.message}</p>
                     )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="recipientEmail" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="recipientEmail" className="text-sm font-semibold text-gray-300">
                       Recipient Email
                     </Label>
                     <Input
@@ -165,39 +165,39 @@ const ColdEmailGenerator = () => {
                       type="email"
                       {...register('recipientEmail')}
                       placeholder="john@company.com"
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="recipientCompany" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="recipientCompany" className="text-sm font-semibold text-gray-300">
                       Company
                     </Label>
                     <Input
                       id="recipientCompany"
                       {...register('recipientCompany')}
                       placeholder="Tech Corp Inc."
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="recipientRole" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="recipientRole" className="text-sm font-semibold text-gray-300">
                       Their Role
                     </Label>
                     <Input
                       id="recipientRole"
                       {...register('recipientRole')}
                       placeholder="Hiring Manager"
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                   </div>
                 </div>
               </div>
 
-              <Separator className="bg-gradient-to-r from-orange-200 to-red-200" />
+              <Separator className="bg-gradient-to-r from-slate-700 to-slate-600" />
 
               {/* Sender Section */}
               <div className="space-y-4">
@@ -205,27 +205,27 @@ const ColdEmailGenerator = () => {
                   <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wide text-sm">Your Information</h3>
+                  <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Your Information</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="senderName" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="senderName" className="text-sm font-semibold text-gray-300">
                       Your Name *
                     </Label>
                     <Input
                       id="senderName"
                       {...register('senderName', { required: 'Your name is required' })}
                       placeholder="Jane Doe"
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                     {errors.senderName && (
-                      <p className="text-sm text-red-500 font-medium">{errors.senderName.message}</p>
+                      <p className="text-sm text-red-400 font-medium">{errors.senderName.message}</p>
                     )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="senderEmail" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="senderEmail" className="text-sm font-semibold text-gray-300">
                       Your Email
                     </Label>
                     <Input
@@ -233,28 +233,28 @@ const ColdEmailGenerator = () => {
                       type="email"
                       {...register('senderEmail')}
                       placeholder="jane@email.com"
-                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="jobTitle" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="jobTitle" className="text-sm font-semibold text-gray-300">
                     Job Title You're Interested In *
                   </Label>
                   <Input
                     id="jobTitle"
                     {...register('jobTitle', { required: 'Job title is required' })}
                     placeholder="Software Engineer"
-                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                   />
                   {errors.jobTitle && (
-                    <p className="text-sm text-red-500 font-medium">{errors.jobTitle.message}</p>
+                    <p className="text-sm text-red-400 font-medium">{errors.jobTitle.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="experience" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="experience" className="text-sm font-semibold text-gray-300">
                     Your Experience
                   </Label>
                   <Textarea
@@ -262,12 +262,12 @@ const ColdEmailGenerator = () => {
                     {...register('experience')}
                     placeholder="5 years of experience in React, Node.js..."
                     rows={3}
-                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20 resize-none"
+                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="skills" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="skills" className="text-sm font-semibold text-gray-300">
                     Key Skills
                   </Label>
                   <Textarea
@@ -275,12 +275,12 @@ const ColdEmailGenerator = () => {
                     {...register('skills')}
                     placeholder="JavaScript, Python, AWS, Leadership..."
                     rows={2}
-                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20 resize-none"
+                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="personalNote" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="personalNote" className="text-sm font-semibold text-gray-300">
                     Personal Note (Optional)
                   </Label>
                   <Textarea
@@ -288,7 +288,7 @@ const ColdEmailGenerator = () => {
                     {...register('personalNote')}
                     placeholder="Any specific reason for reaching out or connection to the company..."
                     rows={2}
-                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20 resize-none"
+                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -315,25 +315,25 @@ const ColdEmailGenerator = () => {
         </Card>
 
         {/* Generated Email */}
-        <Card className="bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-green-200/50 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-t-lg">
+        <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
+          <CardHeader className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-t-lg border-b border-slate-700/50">
             <CardTitle className="flex items-center gap-3 text-xl">
               <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg">
                 <Mail className="h-6 w-6 text-white" />
               </div>
-              <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold">
+              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent font-bold">
                 Generated Email
               </span>
             </CardTitle>
-            <CardDescription className="text-gray-600 font-medium">
+            <CardDescription className="text-gray-300 font-medium">
               Your AI-crafted personalized cold email
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             {generatedEmail ? (
               <div className="space-y-6">
-                <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border border-gray-200/50 shadow-inner">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 font-medium">
+                <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 p-6 rounded-xl border border-slate-600/50 shadow-inner">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-200 font-medium">
                     {generatedEmail}
                   </div>
                 </div>
@@ -342,7 +342,7 @@ const ColdEmailGenerator = () => {
                   <Button 
                     onClick={copyToClipboard} 
                     variant="outline" 
-                    className="flex-1 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 transition-all duration-300 font-semibold"
+                    className="flex-1 border-slate-600 text-gray-200 hover:bg-gray-700/50 hover:border-green-400 transition-all duration-300 font-semibold"
                   >
                     <Copy className="mr-2 h-4 w-4" />
                     Copy to Clipboard
@@ -368,8 +368,8 @@ const ColdEmailGenerator = () => {
                 </div>
 
                 {!formData.recipientEmail && (
-                  <div className="text-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-700 font-medium">
+                  <div className="text-center p-4 bg-amber-900/30 border border-amber-700/50 rounded-lg">
+                    <p className="text-sm text-amber-300 font-medium">
                       💡 Add recipient email to enable direct sending
                     </p>
                   </div>
@@ -377,11 +377,11 @@ const ColdEmailGenerator = () => {
               </div>
             ) : (
               <div className="text-center py-16">
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                   <Mail className="h-12 w-12 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">Ready to Generate</h3>
-                <p className="text-gray-500 font-medium">
+                <h3 className="text-lg font-semibold text-gray-300 mb-2">Ready to Generate</h3>
+                <p className="text-gray-400 font-medium">
                   Fill in the form and click "Generate Perfect Email" to create your personalized outreach
                 </p>
               </div>
