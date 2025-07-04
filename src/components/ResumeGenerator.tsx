@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const { toast } = useToast();
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, control, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
     defaultValues: {
       skills: '',
       education: [{ degree: '', institution: '', year: '' }],
@@ -38,6 +39,9 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
       achievements: ''
     }
   });
+
+  // Watch all form values to get real-time data
+  const watchedData = watch();
 
   const onSubmit = async (data: FormData) => {
     setIsGenerating(true);
@@ -72,14 +76,23 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
   };
 
   const downloadPDF = () => {
-    if (!generatedData) return;
+    // Use current form data if available, otherwise use generated data
+    const currentData = watchedData.fullName ? {
+      ...watchedData,
+      skills: watchedData.skills.split(',').map(s => s.trim()).filter(s => s.length > 0),
+      certifications: watchedData.certifications.split(',').map(s => s.trim()).filter(s => s.length > 0),
+      languages: watchedData.languages ? watchedData.languages.split(',').map(s => s.trim()).filter(s => s.length > 0) : [],
+      achievements: watchedData.achievements ? watchedData.achievements.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
+    } : generatedData;
+
+    if (!currentData) return;
 
     const resumeElement = document.getElementById('resume-preview');
     if (!resumeElement) return;
 
     const opt = {
       margin: [0.5, 0.5, 0.5, 0.5],
-      filename: `${generatedData.fullName.replace(/\s+/g, '_')}_ATS_Resume.pdf`,
+      filename: `${currentData.fullName.replace(/\s+/g, '_')}_ATS_Resume.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 2, 
@@ -113,6 +126,15 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
       });
     }
   };
+
+  // Get current form data for preview
+  const previewData = watchedData.fullName ? {
+    ...watchedData,
+    skills: watchedData.skills ? watchedData.skills.split(',').map(s => s.trim()).filter(s => s.length > 0) : [],
+    certifications: watchedData.certifications ? watchedData.certifications.split(',').map(s => s.trim()).filter(s => s.length > 0) : [],
+    languages: watchedData.languages ? watchedData.languages.split(',').map(s => s.trim()).filter(s => s.length > 0) : [],
+    achievements: watchedData.achievements ? watchedData.achievements.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
+  } : generatedData;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
@@ -172,7 +194,7 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
             </div>
             ATS-Optimized Preview
           </CardTitle>
-          {generatedData && (
+          {previewData && (
             <div className="flex gap-2">
               <Button 
                 onClick={copyToClipboard} 
@@ -195,67 +217,69 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
           )}
         </CardHeader>
         <CardContent className="p-0">
-          {generatedData ? (
+          {previewData ? (
             <div className="max-h-[800px] overflow-y-auto">
               <div id="resume-preview" className="bg-white text-black p-8 font-['Arial',sans-serif] leading-normal">
                 {/* ATS-Optimized Header */}
                 <div className="text-center mb-6 pb-4" style={{ borderBottom: '3px solid #000' }}>
                   <h1 className="text-3xl font-bold text-black mb-3 tracking-wide uppercase" style={{ fontSize: '28px', fontWeight: 'bold' }}>
-                    {generatedData.fullName}
+                    {previewData.fullName}
                   </h1>
                   <div className="flex justify-center items-center gap-4 text-sm text-gray-800 flex-wrap">
-                    <span className="font-medium">{generatedData.phone}</span>
+                    <span className="font-medium">{previewData.phone}</span>
                     <span className="text-gray-600">•</span>
-                    <span className="font-medium">{generatedData.email}</span>
-                    {generatedData.linkedin && (
+                    <span className="font-medium">{previewData.email}</span>
+                    {previewData.linkedin && (
                       <>
                         <span className="text-gray-600">•</span>
-                        <span className="font-medium">LinkedIn: {generatedData.linkedin}</span>
+                        <span className="font-medium">LinkedIn: {previewData.linkedin}</span>
                       </>
                     )}
-                    {generatedData.github && (
+                    {previewData.github && (
                       <>
                         <span className="text-gray-600">•</span>
-                        <span className="font-medium">GitHub: {generatedData.github}</span>
+                        <span className="font-medium">GitHub: {previewData.github}</span>
                       </>
                     )}
                   </div>
                 </div>
 
                 {/* Professional Summary */}
-                {generatedData.summary && (
+                {previewData.summary && (
                   <div className="mb-6">
                     <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
                       PROFESSIONAL SUMMARY
                     </h2>
                     <p className="text-sm leading-relaxed text-gray-900 text-justify" style={{ fontSize: '11px', lineHeight: '1.4' }}>
-                      {generatedData.summary}
+                      {previewData.summary}
                     </p>
                   </div>
                 )}
 
                 {/* Core Competencies */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
-                    CORE COMPETENCIES
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                    {generatedData.skills.map((skill, index) => (
-                      <div key={index} className="flex items-center" style={{ fontSize: '11px' }}>
-                        <span className="w-1 h-1 bg-black rounded-full mr-2"></span>
-                        <span className="font-medium text-gray-900">{skill}</span>
-                      </div>
-                    ))}
+                {previewData.skills && previewData.skills.length > 0 && (
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
+                      CORE COMPETENCIES
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                      {previewData.skills.map((skill, index) => (
+                        <div key={index} className="flex items-center" style={{ fontSize: '11px' }}>
+                          <span className="w-1 h-1 bg-black rounded-full mr-2"></span>
+                          <span className="font-medium text-gray-900">{skill}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Professional Experience */}
-                {generatedData.experience.length > 0 && generatedData.experience[0].company && (
+                {previewData.experience && previewData.experience.length > 0 && previewData.experience[0].company && (
                   <div className="mb-6">
                     <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
                       PROFESSIONAL EXPERIENCE
                     </h2>
-                    {generatedData.experience.map((exp, index) => (
+                    {previewData.experience.map((exp, index) => (
                       <div key={index} className="mb-5">
                         <div className="flex justify-between items-start mb-2">
                           <div>
@@ -280,35 +304,37 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                 )}
 
                 {/* Education */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
-                    EDUCATION
-                  </h2>
-                  {generatedData.education.map((edu, index) => (
-                    <div key={index} className="mb-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-black" style={{ fontSize: '12px' }}>{edu.degree}</h3>
-                          <p className="font-medium text-gray-800" style={{ fontSize: '11px' }}>{edu.institution}</p>
+                {previewData.education && previewData.education.length > 0 && (
+                  <div className="mb-6">
+                    <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
+                      EDUCATION
+                    </h2>
+                    {previewData.education.map((edu, index) => (
+                      <div key={index} className="mb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold text-black" style={{ fontSize: '12px' }}>{edu.degree}</h3>
+                            <p className="font-medium text-gray-800" style={{ fontSize: '11px' }}>{edu.institution}</p>
+                          </div>
+                          <span className="text-sm font-medium bg-gray-200 px-3 py-1 rounded" style={{ fontSize: '10px' }}>
+                            {edu.year}
+                          </span>
                         </div>
-                        <span className="text-sm font-medium bg-gray-200 px-3 py-1 rounded" style={{ fontSize: '10px' }}>
-                          {edu.year}
-                        </span>
+                        {edu.gpa && (
+                          <p className="text-sm text-gray-700 mt-1" style={{ fontSize: '10px' }}>GPA: {edu.gpa}</p>
+                        )}
                       </div>
-                      {edu.gpa && (
-                        <p className="text-sm text-gray-700 mt-1" style={{ fontSize: '10px' }}>GPA: {edu.gpa}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Projects */}
-                {generatedData.projects.length > 0 && generatedData.projects[0].name && (
+                {previewData.projects && previewData.projects.length > 0 && previewData.projects[0].name && (
                   <div className="mb-6">
                     <h2 className="text-lg font-bold text-black mb-3 uppercase tracking-wide" style={{ borderBottom: '2px solid #333', paddingBottom: '4px', fontSize: '16px' }}>
                       KEY PROJECTS
                     </h2>
-                    {generatedData.projects.map((project, index) => (
+                    {previewData.projects.map((project, index) => (
                       <div key={index} className="mb-4">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-bold text-black" style={{ fontSize: '12px' }}>{project.name}</h3>
@@ -327,13 +353,13 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                 {/* Two-column layout for additional sections */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Certifications */}
-                  {generatedData.certifications.length > 0 && (
+                  {previewData.certifications && previewData.certifications.length > 0 && (
                     <div>
                       <h2 className="text-base font-bold text-black mb-2 uppercase tracking-wide" style={{ borderBottom: '1px solid #333', paddingBottom: '2px', fontSize: '14px' }}>
                         CERTIFICATIONS
                       </h2>
                       <div className="space-y-1">
-                        {generatedData.certifications.map((cert, index) => (
+                        {previewData.certifications.map((cert, index) => (
                           <div key={index} className="flex items-start" style={{ fontSize: '11px' }}>
                             <span className="mr-2 mt-1">•</span>
                             <span className="text-gray-900">{cert}</span>
@@ -344,13 +370,13 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                   )}
 
                   {/* Languages */}
-                  {generatedData.languages && generatedData.languages.length > 0 && (
+                  {previewData.languages && previewData.languages.length > 0 && (
                     <div>
                       <h2 className="text-base font-bold text-black mb-2 uppercase tracking-wide" style={{ borderBottom: '1px solid #333', paddingBottom: '2px', fontSize: '14px' }}>
                         LANGUAGES
                       </h2>
                       <div className="space-y-1">
-                        {generatedData.languages.map((lang, index) => (
+                        {previewData.languages.map((lang, index) => (
                           <div key={index} className="flex items-start" style={{ fontSize: '11px' }}>
                             <span className="mr-2 mt-1">•</span>
                             <span className="text-gray-900">{lang}</span>
@@ -361,13 +387,13 @@ const ResumeGenerator = ({ onResumeGenerated }: { onResumeGenerated: (resume: st
                   )}
 
                   {/* Achievements */}
-                  {generatedData.achievements && generatedData.achievements.length > 0 && (
+                  {previewData.achievements && previewData.achievements.length > 0 && (
                     <div className="md:col-span-2">
                       <h2 className="text-base font-bold text-black mb-2 uppercase tracking-wide" style={{ borderBottom: '1px solid #333', paddingBottom: '2px', fontSize: '14px' }}>
                         KEY ACHIEVEMENTS
                       </h2>
                       <div className="space-y-1">
-                        {generatedData.achievements.map((achievement, index) => (
+                        {previewData.achievements.map((achievement, index) => (
                           <div key={index} className="flex items-start" style={{ fontSize: '11px' }}>
                             <span className="mr-2 mt-1">•</span>
                             <span className="text-gray-900">{achievement}</span>

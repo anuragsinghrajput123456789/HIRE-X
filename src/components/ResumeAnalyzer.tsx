@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -370,10 +369,10 @@ const ResumeAnalyzer = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 max-w-[1600px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-[1400px] mx-auto">
           
           {/* Left Column - Input Section */}
-          <div className="xl:col-span-4 space-y-6">
+          <div className="space-y-6">
             {/* Job Role Selection Card */}
             <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-4">
@@ -509,192 +508,15 @@ const ResumeAnalyzer = () => {
             </Card>
           </div>
 
-          {/* Middle Column - Real-time Analysis */}
-          <div className="xl:col-span-4 space-y-6">
-            <Card className="border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center gap-3">
-                  <div className="p-2 bg-orange-500/10 rounded-xl">
-                    <Zap className="w-6 h-6 text-orange-600" />
-                  </div>
-                  Real-time Analysis
-                  {isRealTimeAnalyzing && <Loader2 className="w-5 h-5 animate-spin text-orange-600" />}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {realTimeAnalysis && selectedJobRole ? (
-                  <div className="space-y-6">
-                    {/* Keyword Matching */}
-                    <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                      <h4 className="font-bold mb-3 flex items-center gap-2 text-orange-700 dark:text-orange-300">
-                        <Target className="w-5 h-5" />
-                        Keyword Match ({realTimeAnalysis.keywordMatchScore}%)
-                      </h4>
-                      <Progress value={realTimeAnalysis.keywordMatchScore} className="mb-4 h-3" />
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-1">
-                            ✓ Found Keywords:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {realTimeAnalysis.foundKeywords.map((keyword, index) => (
-                              <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
-                                {keyword}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">
-                            ✗ Missing Keywords:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {realTimeAnalysis.missingKeywords.map((keyword, index) => (
-                              <Badge key={index} variant="outline" className="text-xs border-red-300 text-red-700 bg-red-50">
-                                {keyword}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Readability & Structure */}
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                        <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
-                          <Eye className="w-5 h-5" />
-                          Readability ({realTimeAnalysis.readabilityScore}%)
-                        </h4>
-                        <Progress value={realTimeAnalysis.readabilityScore} className="mb-2 h-2" />
-                      </div>
-
-                      <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
-                        <h4 className="font-bold mb-3 flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                          <Settings className="w-5 h-5" />
-                          Structure Check
-                        </h4>
-                        <div className="grid grid-cols-1 gap-2">
-                          {Object.entries(realTimeAnalysis.structureAnalysis).map(([section, present]) => (
-                            <div key={section} className="flex items-center gap-2 text-sm">
-                              {present ? (
-                                <CheckCircle className="w-4 h-4 text-green-500" />
-                              ) : (
-                                <XCircle className="w-4 h-4 text-red-500" />
-                              )}
-                              <span className={present ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
-                                {section}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Brain className="w-20 h-20 mx-auto opacity-20 mb-4" />
-                    <p className="text-lg font-semibold text-muted-foreground">Real-time Analysis</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {!selectedJobRole ? 'Select a job role to start' : 'Upload or paste your resume'}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Job Description Analysis Results */}
-            {jobAnalysis && (
-              <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/10 rounded-xl">
-                      <Search className="w-6 h-6 text-purple-600" />
-                    </div>
-                    Job Match Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Missing Keywords */}
-                  <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                    <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
-                      <Minus className="w-5 h-5" />
-                      Missing Keywords ({jobAnalysis.missingFromResume.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {jobAnalysis.missingFromResume.map((keyword, index) => (
-                        <Badge key={index} variant="destructive" className="text-xs">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recommended Skills */}
-                  <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                    <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
-                      <Plus className="w-5 h-5" />
-                      Skills to Add ({jobAnalysis.recommendedSkills.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {jobAnalysis.recommendedSkills.map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AI Keyword Suggestions */}
-                  <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                    <h4 className="font-bold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                      <Wand2 className="w-5 h-5" />
-                      AI Keyword Insertion Tips
-                    </h4>
-                    <div className="space-y-3">
-                      {jobAnalysis.keywordInsertions.map((insertion, index) => (
-                        <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Badge className="text-xs bg-blue-600">
-                                {insertion.keyword}
-                              </Badge>
-                              <span className="text-xs text-blue-600 font-medium">in {insertion.section}</span>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 px-2 text-xs"
-                              onClick={() => copySuggestion(insertion.suggestion, index)}
-                            >
-                              {copiedSuggestions.has(index) ? (
-                                <CheckCheck className="w-3 h-3" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                            "{insertion.suggestion}"
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Right Column - Full Analysis */}
-          <div className="xl:col-span-4 space-y-6">
+          {/* Right Column - Combined Analysis */}
+          <div className="space-y-6">
             <Card className="border-2 border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-teal-800 dark:text-teal-200 flex items-center gap-3">
                   <div className="p-2 bg-teal-500/10 rounded-xl">
                     <Sparkles className="w-6 h-6 text-teal-600" />
                   </div>
-                  Complete ATS Analysis
+                  AI Resume Analysis
                 </CardTitle>
                 <Button
                   onClick={handleAnalyze}
@@ -716,42 +538,169 @@ const ResumeAnalyzer = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {analysis ? (
-                  <div className="space-y-6">
-                    {/* ATS Score Display */}
-                    <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-2xl text-white shadow-2xl transform hover:scale-105 transition-all duration-300`}>
-                      <div className="flex items-center justify-center mb-4">
-                        {getScoreIcon(analysis.atsScore)}
-                      </div>
-                      <h3 className="text-2xl font-bold mb-3">ATS Compatibility Score</h3>
-                      <div className="text-5xl font-bold mb-4">
-                        {analysis.atsScore}/100
-                      </div>
-                      <p className="text-xl font-bold mb-4">
-                        {getScoreLabel(analysis.atsScore)}
-                      </p>
-                      <Progress value={analysis.atsScore} className="w-full h-4 bg-white/20" />
-                    </div>
+                <Tabs defaultValue="live-analysis" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="live-analysis" className="flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Live Analysis
+                    </TabsTrigger>
+                    <TabsTrigger value="complete-analysis" className="flex items-center gap-2">
+                      <Brain className="w-4 h-4" />
+                      Complete Analysis
+                    </TabsTrigger>
+                  </TabsList>
 
-                    {/* Detailed Analysis Tabs */}
-                    <Tabs defaultValue="improvements" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 mb-6">
-                        <TabsTrigger value="improvements" className="flex items-center gap-2">
-                          <Lightbulb className="w-4 h-4" />
-                          Improvements
-                        </TabsTrigger>
-                        <TabsTrigger value="keywords" className="flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          Keywords
-                        </TabsTrigger>
-                        <TabsTrigger value="matching" className="flex items-center gap-2">
-                          <Award className="w-4 h-4" />
-                          Job Match
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="improvements" className="space-y-4">
-                        <div className="space-y-4">
+                  <TabsContent value="live-analysis" className="space-y-6">
+                    {/* Real-time Analysis Section */}
+                    {realTimeAnalysis && selectedJobRole ? (
+                      <div className="space-y-4">
+                        {/* ATS Score Display */}
+                        <div className="text-center p-6 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl text-white shadow-lg">
+                          <div className="flex items-center justify-center mb-3">
+                            <Zap className="w-8 h-8" />
+                          </div>
+                          <h3 className="text-lg font-bold mb-2">Live ATS Score</h3>
+                          <div className="text-3xl font-bold mb-2">
+                            {realTimeAnalysis.keywordMatchScore}/100
+                          </div>
+                          <Progress value={realTimeAnalysis.keywordMatchScore} className="w-full h-3 bg-white/20" />
+                        </div>
+
+                        {/* Keyword Analysis */}
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
+                            <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
+                              <CheckCircle className="w-5 h-5" />
+                              Found Keywords ({realTimeAnalysis.foundKeywords.length})
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {realTimeAnalysis.foundKeywords.map((keyword, index) => (
+                                <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
+                            <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
+                              <XCircle className="w-5 h-5" />
+                              Missing Keywords ({realTimeAnalysis.missingKeywords.length})
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {realTimeAnalysis.missingKeywords.map((keyword, index) => (
+                                <Badge key={index} variant="outline" className="text-xs border-red-300 text-red-700 bg-red-50">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-orange-200">
+                            <h4 className="font-bold mb-3 flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
+                              <Settings className="w-5 h-5" />
+                              Resume Structure
+                            </h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {Object.entries(realTimeAnalysis.structureAnalysis).map(([section, present]) => (
+                                <div key={section} className="flex items-center gap-2 text-sm">
+                                  {present ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  )}
+                                  <span className={present ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
+                                    {section}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Job Description Analysis */}
+                        {jobAnalysis && (
+                          <div className="space-y-4">
+                            <h4 className="font-bold text-lg flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                              <Search className="w-5 h-5" />
+                              Job Match Analysis
+                            </h4>
+                            
+                            <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
+                              <h5 className="font-bold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                                <Wand2 className="w-5 h-5" />
+                                AI Keyword Insertion Tips
+                              </h5>
+                              <div className="space-y-3">
+                                {jobAnalysis.keywordInsertions.map((insertion, index) => (
+                                  <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <Badge className="text-xs bg-blue-600">
+                                          {insertion.keyword}
+                                        </Badge>
+                                        <span className="text-xs text-blue-600 font-medium">in {insertion.section}</span>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => copySuggestion(insertion.suggestion, index)}
+                                      >
+                                        {copiedSuggestions.has(index) ? (
+                                          <CheckCheck className="w-3 h-3" />
+                                        ) : (
+                                          <Copy className="w-3 h-3" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                    <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                                      "{insertion.suggestion}"
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-16">
+                        <div className="space-y-6">
+                          <div className="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-full w-fit mx-auto">
+                            <Zap className="w-16 h-16 text-orange-600 opacity-60" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">Live Analysis Ready</p>
+                            <p className="text-orange-600 dark:text-orange-400 mt-3 text-lg">
+                              {!selectedJobRole ? 'Select a job role to start live analysis' : 'Upload or paste your resume for real-time feedback'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="complete-analysis" className="space-y-6">
+                    {analysis ? (
+                      <div className="space-y-6">
+                        {/* ATS Score Display */}
+                        <div className={`text-center p-8 bg-gradient-to-br ${getScoreColor(analysis.atsScore)} rounded-2xl text-white shadow-2xl transform hover:scale-105 transition-all duration-300`}>
+                          <div className="flex items-center justify-center mb-4">
+                            {getScoreIcon(analysis.atsScore)}
+                          </div>
+                          <h3 className="text-2xl font-bold mb-3">ATS Compatibility Score</h3>
+                          <div className="text-5xl font-bold mb-4">
+                            {analysis.atsScore}/100
+                          </div>
+                          <p className="text-xl font-bold mb-4">
+                            {getScoreLabel(analysis.atsScore)}
+                          </p>
+                          <Progress value={analysis.atsScore} className="w-full h-4 bg-white/20" />
+                        </div>
+
+                        {/* Detailed Analysis */}
+                        <div className="grid grid-cols-1 gap-6">
                           <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-red-200">
                             <h4 className="font-bold mb-3 flex items-center gap-2 text-red-700 dark:text-red-300">
                               <XCircle className="w-5 h-5" />
@@ -781,67 +730,63 @@ const ResumeAnalyzer = () => {
                               ))}
                             </ul>
                           </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="keywords" className="space-y-4">
-                        <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-green-200">
-                          <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
-                            <Plus className="w-5 h-5" />
-                            Keywords to Add
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.missingKeywords.map((keyword, index) => (
-                              <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
-                                + {keyword}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="matching" className="space-y-4">
-                        <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
-                          <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
-                            <Award className="w-5 h-5" />
-                            Best Matching Roles ({analysis.matchingJobRoles.length})
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.matchingJobRoles.map((role, index) => (
-                              <Badge key={index} variant="secondary" className="text-sm border-purple-300 text-purple-700 bg-purple-50 px-3 py-1">
-                                {role}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
 
-                    <Button
-                      onClick={handleAnalyze}
-                      variant="outline"
-                      disabled={isAnalyzing}
-                      className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Re-analyze Resume
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-16">
-                    <div className="space-y-6">
-                      <div className="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-full w-fit mx-auto">
-                        <Brain className="w-16 h-16 text-teal-600 opacity-60" />
+                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-green-200">
+                            <h4 className="font-bold mb-3 flex items-center gap-2 text-green-700 dark:text-green-300">
+                              <Plus className="w-5 h-5" />
+                              Keywords to Add
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {analysis.missingKeywords.map((keyword, index) => (
+                                <Badge key={index} variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
+                                  + {keyword}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-purple-200">
+                            <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                              <Award className="w-5 h-5" />
+                              Best Matching Roles ({analysis.matchingJobRoles.length})
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {analysis.matchingJobRoles.map((role, index) => (
+                                <Badge key={index} variant="secondary" className="text-sm border-purple-300 text-purple-700 bg-purple-50 px-3 py-1">
+                                  {role}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={handleAnalyze}
+                          variant="outline"
+                          disabled={isAnalyzing}
+                          className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Re-analyze Resume
+                        </Button>
                       </div>
-                      <div>
-                        <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Analysis</p>
-                        <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
-                          Upload your resume and click "Analyze" for comprehensive ATS scoring
-                        </p>
+                    ) : (
+                      <div className="text-center py-16">
+                        <div className="space-y-6">
+                          <div className="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-full w-fit mx-auto">
+                            <Brain className="w-16 h-16 text-teal-600 opacity-60" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Complete Analysis</p>
+                            <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
+                              Upload your resume and click "Analyze Resume" for comprehensive ATS scoring
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
+                  </TabsContent>
+                </Tabs>
 
                 {isRetrying && (
                   <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-xl">
