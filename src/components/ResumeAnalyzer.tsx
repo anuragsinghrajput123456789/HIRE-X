@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { analyzeResume, type AnalysisResult } from '../services/geminiApi';
 import { extractTextFromPDF, extractTextFromWordDoc } from '../services/pdfTextExtractor';
@@ -118,59 +116,15 @@ const ResumeAnalyzer = () => {
     }
   };
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please upload a file smaller than 10MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const text = await extractTextFromFile(file);
-      setResumeText(text);
-      setFileName(file.name);
-      setAnalysis(null);
-      setIsRetrying(false);
-      
-      toast({
-        title: "Resume Uploaded Successfully",
-        description: `Document processed successfully! ${text.length} characters extracted.`,
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to process document. Please try with a different file format or check if the file contains readable text.",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt']
-    },
-    multiple: false,
-    maxSize: 10 * 1024 * 1024
-  });
-
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (autoStart = false) => {
     if (!resumeText.trim()) {
-      toast({
-        title: "No Resume Content",
-        description: "Please upload a resume document or paste resume text to analyze.",
-        variant: "destructive",
-      });
+      if (!autoStart) {
+        toast({
+          title: "No Resume Content",
+          description: "Please upload a resume document to analyze.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -223,6 +177,58 @@ const ResumeAnalyzer = () => {
       setIsAnalyzing(false);
     }
   };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const text = await extractTextFromFile(file);
+      setResumeText(text);
+      setFileName(file.name);
+      setAnalysis(null);
+      setIsRetrying(false);
+      
+      toast({
+        title: "Resume Uploaded Successfully",
+        description: `Document processed successfully! ${text.length} characters extracted.`,
+      });
+
+      // Automatically start analysis after successful upload
+      setTimeout(() => {
+        handleAnalyze(true);
+      }, 500);
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to process document. Please try with a different file format or check if the file contains readable text.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/plain': ['.txt']
+    },
+    multiple: false,
+    maxSize: 10 * 1024 * 1024
+  });
 
   const getScoreIcon = (score: number) => {
     if (score >= 80) return <Award className="w-8 h-8 text-green-500" />;
@@ -332,6 +338,9 @@ const ResumeAnalyzer = () => {
                       <p className="text-green-600 dark:text-green-400 font-medium">
                         PDF, DOC, DOCX, TXT • Max 10MB
                       </p>
+                      <p className="text-sm text-green-500 dark:text-green-400 mt-2">
+                        Analysis will start automatically after upload
+                      </p>
                     </div>
                     
                     {uploadProgress > 0 && (
@@ -343,24 +352,15 @@ const ResumeAnalyzer = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="resume-text" className="text-base font-semibold text-green-800 dark:text-green-200">
-                    Or paste your resume text:
-                  </Label>
-                  <Textarea
-                    id="resume-text"
-                    placeholder="Paste your complete resume content here..."
-                    value={resumeText}
-                    onChange={(e) => setResumeText(e.target.value)}
-                    className="min-h-[200px] text-base border-2 hover:border-green-400 focus:border-green-500 transition-colors resize-vertical"
-                  />
-                  {resumeText && (
-                    <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
-                      <span>{resumeText.length.toLocaleString()} characters</span>
-                      {fileName && <span className="font-medium">File: {fileName}</span>}
+                {resumeText && (
+                  <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Resume loaded: {resumeText.length.toLocaleString()} characters</span>
                     </div>
-                  )}
-                </div>
+                    {fileName && <span className="font-medium">File: {fileName}</span>}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -375,24 +375,26 @@ const ResumeAnalyzer = () => {
                   </div>
                   AI Resume Analysis
                 </CardTitle>
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing || !resumeText.trim()}
-                  size="lg"
-                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="w-5 h-5 mr-2" />
-                      Analyze Resume
-                    </>
-                  )}
-                </Button>
+                {resumeText && (
+                  <Button
+                    onClick={() => handleAnalyze(false)}
+                    disabled={isAnalyzing}
+                    size="lg"
+                    className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-5 h-5 mr-2" />
+                        Re-analyze
+                      </>
+                    )}
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {analysis ? (
@@ -472,28 +474,33 @@ const ResumeAnalyzer = () => {
                         </div>
                       </div>
                     </div>
-
-                    <Button
-                      onClick={handleAnalyze}
-                      variant="outline"
-                      disabled={isAnalyzing}
-                      className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Re-analyze Resume
-                    </Button>
                   </div>
                 ) : (
                   <div className="text-center py-16">
                     <div className="space-y-6">
                       <div className="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-full w-fit mx-auto">
-                        <Brain className="w-16 h-16 text-teal-600 opacity-60" />
+                        {isAnalyzing ? (
+                          <Loader2 className="w-16 h-16 text-teal-600 animate-spin" />
+                        ) : (
+                          <Brain className="w-16 h-16 text-teal-600 opacity-60" />
+                        )}
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Complete Analysis</p>
-                        <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
-                          Upload your resume and click "Analyze Resume" for comprehensive ATS scoring
-                        </p>
+                        {isAnalyzing ? (
+                          <>
+                            <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Analyzing Your Resume</p>
+                            <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
+                              Please wait while AI analyzes your resume for ATS compatibility...
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">Ready for Analysis</p>
+                            <p className="text-teal-600 dark:text-teal-400 mt-3 text-lg">
+                              Upload your resume to get started with AI-powered ATS analysis
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
