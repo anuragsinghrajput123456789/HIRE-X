@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Send, Copy, RefreshCw, User, Building, Briefcase, Sparkles } from 'lucide-react';
+import { Mail, Send, Copy, RefreshCw, User, Building, Briefcase, Sparkles, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateColdEmail } from '../services/geminiApi';
 
@@ -28,6 +27,7 @@ const ColdEmailGenerator = () => {
   const [generatedEmail, setGeneratedEmail] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<EmailFormData>({
     defaultValues: {
@@ -75,6 +75,7 @@ const ColdEmailGenerator = () => {
 
       const email = await generateColdEmail(prompt);
       setGeneratedEmail(email);
+      setShowPreview(true);
       toast.success('Email generated successfully!');
     } catch (error) {
       console.error('Error generating email:', error);
@@ -113,282 +114,387 @@ const ColdEmailGenerator = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 min-h-screen p-6">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-t-lg border-b border-slate-700/50">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg shadow-lg">
-                <Mail className="h-6 w-6 text-white" />
-              </div>
-              <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-bold">
-                Email Configuration
-              </span>
-            </CardTitle>
-            <CardDescription className="text-gray-300 font-medium">
-              Provide details to create your personalized cold email
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <form onSubmit={handleSubmit(onGenerate)} className="space-y-6">
-              {/* Recipient Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Recipient Details</h3>
+      {!showPreview ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Input Form */}
+          <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-t-lg border-b border-slate-700/50">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg shadow-lg">
+                  <Mail className="h-6 w-6 text-white" />
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-bold">
+                  Email Configuration
+                </span>
+              </CardTitle>
+              <CardDescription className="text-gray-300 font-medium">
+                Provide details to create your personalized cold email
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <form onSubmit={handleSubmit(onGenerate)} className="space-y-6">
+                {/* Recipient Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Recipient Details</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recipientName" className="text-sm font-semibold text-gray-300">
+                        Recipient Name *
+                      </Label>
+                      <Input
+                        id="recipientName"
+                        {...register('recipientName', { required: 'Recipient name is required' })}
+                        placeholder="John Smith"
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                      {errors.recipientName && (
+                        <p className="text-sm text-red-400 font-medium">{errors.recipientName.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="recipientEmail" className="text-sm font-semibold text-gray-300">
+                        Recipient Email
+                      </Label>
+                      <Input
+                        id="recipientEmail"
+                        type="email"
+                        {...register('recipientEmail')}
+                        placeholder="john@company.com"
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recipientCompany" className="text-sm font-semibold text-gray-300">
+                        Company
+                      </Label>
+                      <Input
+                        id="recipientCompany"
+                        {...register('recipientCompany')}
+                        placeholder="Tech Corp Inc."
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="recipientRole" className="text-sm font-semibold text-gray-300">
+                        Their Role
+                      </Label>
+                      <Input
+                        id="recipientRole"
+                        {...register('recipientRole')}
+                        placeholder="Hiring Manager"
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-slate-700 to-slate-600" />
+
+                {/* Sender Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Your Information</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="senderName" className="text-sm font-semibold text-gray-300">
+                        Your Name *
+                      </Label>
+                      <Input
+                        id="senderName"
+                        {...register('senderName', { required: 'Your name is required' })}
+                        placeholder="Jane Doe"
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                      {errors.senderName && (
+                        <p className="text-sm text-red-400 font-medium">{errors.senderName.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="senderEmail" className="text-sm font-semibold text-gray-300">
+                        Your Email
+                      </Label>
+                      <Input
+                        id="senderEmail"
+                        type="email"
+                        {...register('senderEmail')}
+                        placeholder="jane@email.com"
+                        className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="recipientName" className="text-sm font-semibold text-gray-300">
-                      Recipient Name *
+                    <Label htmlFor="jobTitle" className="text-sm font-semibold text-gray-300">
+                      Job Title You're Interested In *
                     </Label>
                     <Input
-                      id="recipientName"
-                      {...register('recipientName', { required: 'Recipient name is required' })}
-                      placeholder="John Smith"
+                      id="jobTitle"
+                      {...register('jobTitle', { required: 'Job title is required' })}
+                      placeholder="Software Engineer"
                       className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
                     />
-                    {errors.recipientName && (
-                      <p className="text-sm text-red-400 font-medium">{errors.recipientName.message}</p>
+                    {errors.jobTitle && (
+                      <p className="text-sm text-red-400 font-medium">{errors.jobTitle.message}</p>
                     )}
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="experience" className="text-sm font-semibold text-gray-300">
+                      Your Experience
+                    </Label>
+                    <Textarea
+                      id="experience"
+                      {...register('experience')}
+                      placeholder="5 years of experience in React, Node.js..."
+                      rows={3}
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="skills" className="text-sm font-semibold text-gray-300">
+                      Key Skills
+                    </Label>
+                    <Textarea
+                      id="skills"
+                      {...register('skills')}
+                      placeholder="JavaScript, Python, AWS, Leadership..."
+                      rows={2}
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="personalNote" className="text-sm font-semibold text-gray-300">
+                      Personal Note (Optional)
+                    </Label>
+                    <Textarea
+                      id="personalNote"
+                      {...register('personalNote')}
+                      placeholder="Any specific reason for reaching out or connection to the company..."
+                      rows={2}
+                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold py-3"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                      Crafting Your Email...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate Perfect Email
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Generated Email */}
+          <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-t-lg border-b border-slate-700/50">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent font-bold">
+                  Generated Email
+                </span>
+              </CardTitle>
+              <CardDescription className="text-gray-300 font-medium">
+                Your AI-crafted personalized cold email
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {generatedEmail ? (
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 p-6 rounded-xl border border-slate-600/50 shadow-inner">
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-200 font-medium">
+                      {generatedEmail}
+                    </div>
+                  </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="recipientEmail" className="text-sm font-semibold text-gray-300">
-                      Recipient Email
-                    </Label>
-                    <Input
-                      id="recipientEmail"
-                      type="email"
-                      {...register('recipientEmail')}
-                      placeholder="john@company.com"
-                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                    />
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={copyToClipboard} 
+                      variant="outline" 
+                      className="flex-1 border-slate-600 text-gray-200 hover:bg-gray-700/50 hover:border-green-400 transition-all duration-300 font-semibold"
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy to Clipboard
+                    </Button>
+                    
+                    <Button 
+                      onClick={sendEmail}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                      disabled={isSending || !formData.recipientEmail}
+                    >
+                      {isSending ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Opening Gmail...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Send via Gmail
+                        </>
+                      )}
+                    </Button>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recipientCompany" className="text-sm font-semibold text-gray-300">
-                      Company
-                    </Label>
-                    <Input
-                      id="recipientCompany"
-                      {...register('recipientCompany')}
-                      placeholder="Tech Corp Inc."
-                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="recipientRole" className="text-sm font-semibold text-gray-300">
-                      Their Role
-                    </Label>
-                    <Input
-                      id="recipientRole"
-                      {...register('recipientRole')}
-                      placeholder="Hiring Manager"
-                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="bg-gradient-to-r from-slate-700 to-slate-600" />
-
-              {/* Sender Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-                    <Sparkles className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="font-bold text-gray-200 uppercase tracking-wide text-sm">Your Information</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="senderName" className="text-sm font-semibold text-gray-300">
-                      Your Name *
-                    </Label>
-                    <Input
-                      id="senderName"
-                      {...register('senderName', { required: 'Your name is required' })}
-                      placeholder="Jane Doe"
-                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                    />
-                    {errors.senderName && (
-                      <p className="text-sm text-red-400 font-medium">{errors.senderName.message}</p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="senderEmail" className="text-sm font-semibold text-gray-300">
-                      Your Email
-                    </Label>
-                    <Input
-                      id="senderEmail"
-                      type="email"
-                      {...register('senderEmail')}
-                      placeholder="jane@email.com"
-                      className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="jobTitle" className="text-sm font-semibold text-gray-300">
-                    Job Title You're Interested In *
-                  </Label>
-                  <Input
-                    id="jobTitle"
-                    {...register('jobTitle', { required: 'Job title is required' })}
-                    placeholder="Software Engineer"
-                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 text-gray-100 placeholder:text-gray-400"
-                  />
-                  {errors.jobTitle && (
-                    <p className="text-sm text-red-400 font-medium">{errors.jobTitle.message}</p>
+                  {!formData.recipientEmail && (
+                    <div className="text-center p-4 bg-amber-900/30 border border-amber-700/50 rounded-lg">
+                      <p className="text-sm text-amber-300 font-medium">
+                        💡 Add recipient email to enable direct sending
+                      </p>
+                    </div>
                   )}
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="experience" className="text-sm font-semibold text-gray-300">
-                    Your Experience
-                  </Label>
-                  <Textarea
-                    id="experience"
-                    {...register('experience')}
-                    placeholder="5 years of experience in React, Node.js..."
-                    rows={3}
-                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
-                  />
+              ) : (
+                <div className="text-center py-16">
+                  <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                    <Mail className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-300 mb-2">Ready to Generate</h3>
+                  <p className="text-gray-400 font-medium">
+                    Fill in the form and click "Generate Perfect Email" to create your personalized outreach
+                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="skills" className="text-sm font-semibold text-gray-300">
-                    Key Skills
-                  </Label>
-                  <Textarea
-                    id="skills"
-                    {...register('skills')}
-                    placeholder="JavaScript, Python, AWS, Leadership..."
-                    rows={2}
-                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="personalNote" className="text-sm font-semibold text-gray-300">
-                    Personal Note (Optional)
-                  </Label>
-                  <Textarea
-                    id="personalNote"
-                    {...register('personalNote')}
-                    placeholder="Any specific reason for reaching out or connection to the company..."
-                    rows={2}
-                    className="bg-gray-700/80 border-slate-600 focus:border-orange-400 focus:ring-orange-400/20 resize-none text-gray-100 placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        /* Preview Mode */
+        <div className="space-y-6">
+          {/* Header with back button */}
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={() => setShowPreview(false)}
+              variant="outline"
+              className="border-slate-600 text-gray-200 hover:bg-gray-700/50"
+            >
+              ← Back to Editor
+            </Button>
+            <div className="flex gap-3">
               <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold py-3"
-                disabled={isGenerating}
+                onClick={copyToClipboard} 
+                variant="outline" 
+                className="border-slate-600 text-gray-200 hover:bg-gray-700/50 hover:border-green-400"
               >
-                {isGenerating ? (
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Email
+              </Button>
+              
+              <Button 
+                onClick={sendEmail}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                disabled={isSending || !formData.recipientEmail}
+              >
+                {isSending ? (
                   <>
-                    <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                    Crafting Your Email...
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Opening Gmail...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Generate Perfect Email
+                    <Send className="mr-2 h-4 w-4" />
+                    Send via Gmail
                   </>
                 )}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
 
-        {/* Generated Email */}
-        <Card className="bg-gradient-to-br from-gray-800/90 to-slate-900/90 backdrop-blur-sm border-slate-700/50 shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-t-lg border-b border-slate-700/50">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg">
-                <Mail className="h-6 w-6 text-white" />
+          {/* Email Preview */}
+          <Card className="bg-white dark:bg-gray-900 shadow-2xl max-w-4xl mx-auto">
+            <CardHeader className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl text-gray-900 dark:text-gray-100">
+                    Email Preview
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">
+                    Subject: Application for {formData.jobTitle} Position
+                  </CardDescription>
+                </div>
               </div>
-              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent font-bold">
-                Generated Email
-              </span>
-            </CardTitle>
-            <CardDescription className="text-gray-300 font-medium">
-              Your AI-crafted personalized cold email
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            {generatedEmail ? (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 p-6 rounded-xl border border-slate-600/50 shadow-inner">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-200 font-medium">
-                    {generatedEmail}
+            </CardHeader>
+            <CardContent className="p-8">
+              {/* Email Header Info */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">To: </span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {formData.recipientName} ({formData.recipientEmail || 'recipient@email.com'})
+                    </span>
                   </div>
+                  <div>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">From: </span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {formData.senderName} ({formData.senderEmail || 'your@email.com'})
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Body */}
+              <div className="prose prose-gray dark:prose-invert max-w-none">
+                <div className="whitespace-pre-wrap text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
+                  {generatedEmail}
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={copyToClipboard} 
-                    variant="outline" 
-                    className="flex-1 border-slate-600 text-gray-200 hover:bg-gray-700/50 hover:border-green-400 transition-all duration-300 font-semibold"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
-                  </Button>
-                  
-                  <Button 
-                    onClick={sendEmail}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-                    disabled={isSending || !formData.recipientEmail}
-                  >
-                    {isSending ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Opening Gmail...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Send via Gmail
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {!formData.recipientEmail && (
-                  <div className="text-center p-4 bg-amber-900/30 border border-amber-700/50 rounded-lg">
-                    <p className="text-sm text-amber-300 font-medium">
-                      💡 Add recipient email to enable direct sending
-                    </p>
+                {/* Email Signature */}
+                <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-gray-900 dark:text-gray-100">
+                    <p className="font-semibold">{formData.senderName}</p>
+                    {formData.senderEmail && <p className="text-sm text-gray-600 dark:text-gray-400">{formData.senderEmail}</p>}
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="bg-gradient-to-br from-gray-700/50 to-slate-800/50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <Mail className="h-12 w-12 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-300 mb-2">Ready to Generate</h3>
-                <p className="text-gray-400 font-medium">
-                  Fill in the form and click "Generate Perfect Email" to create your personalized outreach
-                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+
+          {!formData.recipientEmail && (
+            <div className="text-center p-4 bg-amber-900/30 border border-amber-700/50 rounded-lg max-w-4xl mx-auto">
+              <p className="text-sm text-amber-300 font-medium">
+                💡 Add recipient email in the form to enable direct sending
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
