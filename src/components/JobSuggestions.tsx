@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateResumeContent } from '../services/geminiApi';
 import { useToast } from '@/hooks/use-toast';
-import { ExternalLink, Search, MapPin, Briefcase, Building, Clock, Loader2, Globe, Star, Lightbulb, Target, CheckCircle, GraduationCap, Users, TrendingUp, Award } from 'lucide-react';
+import { ExternalLink, Search, MapPin, Briefcase, Building, Clock, Loader2, Globe, Star, Lightbulb, Target, CheckCircle, GraduationCap, Users, TrendingUp, Award, Zap, Home, Wifi } from 'lucide-react';
 
 interface JobListing {
   title: string;
@@ -542,33 +542,45 @@ const JobSuggestions = () => {
     { name: 'AngelList', url: 'https://angel.co/jobs', description: 'Startup jobs and equity opportunities', icon: '🚀', users: '8M+', category: 'Startup' }
   ];
 
-  const realInternshipWebsites = [
-    { name: 'Internshala', url: 'https://internshala.com', description: 'India\'s largest internship platform with 300K+ opportunities', icon: '🎓', opportunities: '300K+', category: 'Leading' },
-    { name: 'LetsIntern', url: 'https://www.letsintern.com', description: 'Curated internships and early career opportunities', icon: '🌟', opportunities: '50K+', category: 'Curated' },
-    { name: 'LinkedIn Internships', url: 'https://www.linkedin.com/jobs/internship-jobs', description: 'Professional internship opportunities', icon: '💼', opportunities: '100K+', category: 'Professional' },
-    { name: 'Indeed Internships', url: 'https://in.indeed.com/Internship-jobs', description: 'Global internship search engine', icon: '🌍', opportunities: '200K+', category: 'Global' },
-    { name: 'Chegg Internships', url: 'https://www.chegg.com/internships', description: 'Student-focused internship platform', icon: '📚', opportunities: '30K+', category: 'Student' },
-    { name: 'Forage', url: 'https://www.theforage.com', description: 'Virtual work experience programs', icon: '💻', opportunities: '500+', category: 'Virtual' }
+  const internationalJobWebsites = [
+    { name: 'LinkedIn Global', url: 'https://www.linkedin.com/jobs', description: 'World\'s largest professional network with global opportunities', flag: '🌍', users: '900M+', category: 'Professional', countries: '200+' },
+    { name: 'Indeed Worldwide', url: 'https://www.indeed.com', description: 'Global job search engine available in 60+ countries', flag: '🌍', users: '300M+', category: 'Global', countries: '60+' },
+    { name: 'Glassdoor International', url: 'https://www.glassdoor.com', description: 'Company insights and job listings worldwide', flag: '🌍', users: '100M+', category: 'Reviews', countries: '50+' },
+    { name: 'Monster Worldwide', url: 'https://www.monster.com', description: 'Global career network connecting talent worldwide', flag: '🌍', users: '50M+', category: 'Global', countries: '40+' },
+    { name: 'StepStone', url: 'https://www.stepstone.com', description: 'Leading job board in Europe with international reach', flag: '🇪🇺', users: '30M+', category: 'European', countries: '20+' },
+    { name: 'Xing Jobs', url: 'https://www.xing.com/jobs', description: 'Professional network focused on German-speaking countries', flag: '🇩🇪', users: '20M+', category: 'DACH Region', countries: '5+' },
+    { name: 'Seek', url: 'https://www.seek.com', description: 'Leading job site in Australia and Asia-Pacific', flag: '🇦🇺', users: '25M+', category: 'Asia-Pacific', countries: '10+' },
+    { name: 'JobStreet', url: 'https://www.jobstreet.com', description: 'Premier job portal for Southeast Asia', flag: '🇸🇬', users: '15M+', category: 'Southeast Asia', countries: '8+' },
+    { name: 'CareerBuilder', url: 'https://www.careerbuilder.com', description: 'Global talent solutions with AI-powered matching', flag: '🇺🇸', users: '30M+', category: 'AI-Powered', countries: '25+' },
+    { name: 'ZipRecruiter', url: 'https://www.ziprecruiter.com', description: 'Smart matching technology for global job seekers', flag: '🇺🇸', users: '25M+', category: 'Smart Matching', countries: '15+' }
   ];
 
-  const internationalFreelancingWebsites = [
-    { name: 'Upwork', url: 'https://www.upwork.com', description: 'World\'s largest freelancing platform with 18M+ freelancers', flag: '🌍', users: '18M+', category: 'Leading' },
-    { name: 'Fiverr', url: 'https://www.fiverr.com', description: 'Marketplace for creative & digital services starting at $5', flag: '🌍', users: '4M+', category: 'Creative' },
-    { name: 'Freelancer', url: 'https://www.freelancer.com', description: 'Global crowdsourcing marketplace with 50M+ users', flag: '🌍', users: '50M+', category: 'Global' },
-    { name: 'Toptal', url: 'https://www.toptal.com', description: 'Exclusive network of top 3% freelance talent', flag: '🌍', users: '1M+', category: 'Premium' },
-    { name: 'Guru', url: 'https://www.guru.com', description: 'Flexible online workplace for freelancers', flag: '🌍', users: '3M+', category: 'Flexible' },
-    { name: 'PeoplePerHour', url: 'https://www.peopleperhour.com', description: 'UK-based platform for freelance services', flag: '🇬🇧', users: '3M+', category: 'UK-Based' },
-    { name: '99designs', url: 'https://99designs.com', description: 'Design contests and 1-to-1 design projects', flag: '🌍', users: '1M+', category: 'Design' },
-    { name: 'Behance', url: 'https://www.behance.net/jobboard', description: 'Creative portfolio platform with job board', flag: '🌍', users: '20M+', category: 'Creative' }
+  const nationalJobWebsites = [
+    { name: 'Naukri.com', url: 'https://www.naukri.com', description: 'India\'s No.1 job site with largest database', flag: '🇮🇳', users: '50M+', category: 'Leading', locations: '4000+' },
+    { name: 'Indeed India', url: 'https://in.indeed.com', description: 'Localized Indeed for Indian job market', flag: '🇮🇳', users: '20M+', category: 'Global-Local', locations: '1000+' },
+    { name: 'Monster India', url: 'https://www.monsterindia.com', description: 'Pioneer in Indian online recruitment', flag: '🇮🇳', users: '25M+', category: 'Pioneer', locations: '800+' },
+    { name: 'Shine.com', url: 'https://www.shine.com', description: 'AI-driven career advancement platform', flag: '🇮🇳', users: '10M+', category: 'AI-Driven', locations: '600+' },
+    { name: 'TimesJobs', url: 'https://www.timesjobs.com', description: 'Premium job portal by Times Group', flag: '🇮🇳', users: '15M+', category: 'Premium', locations: '500+' },
+    { name: 'Foundit (Monster)', url: 'https://www.foundit.in', description: 'Rebranded Monster with local focus', flag: '🇮🇳', users: '12M+', category: 'Rebranded', locations: '400+' },
+    { name: 'Apna.co', url: 'https://apna.co', description: 'Professional networking for India\'s workforce', flag: '🇮🇳', users: '30M+', category: 'Networking', locations: '70+' },
+    { name: 'Hirist', url: 'https://hirist.com', description: 'Specialized in IT and technology jobs', flag: '🇮🇳', users: '2M+', category: 'Tech-Focused', locations: '200+' },
+    { name: 'CutShort', url: 'https://cutshort.io', description: 'Startup-focused job platform', flag: '🇮🇳', users: '500K+', category: 'Startup', locations: '50+' },
+    { name: 'AngelList India', url: 'https://angel.co/india', description: 'Startup jobs and equity in India', flag: '🇮🇳', users: '1M+', category: 'Startup Equity', locations: '25+' }
   ];
 
-  const nationalFreelancingWebsites = [
-    { name: 'Truelancer', url: 'https://www.truelancer.com', description: 'India\'s leading freelancing platform', flag: '🇮🇳', users: '1M+', category: 'Leading' },
-    { name: 'Worknhire', url: 'https://www.worknhire.com', description: 'Indian freelancing marketplace', flag: '🇮🇳', users: '500K+', category: 'Marketplace' },
-    { name: 'Freelancer India', url: 'https://www.freelancer.in', description: 'Indian version of Freelancer.com', flag: '🇮🇳', users: '2M+', category: 'Local' },
-    { name: 'Taskmo', url: 'https://www.taskmo.com', description: 'Gig economy platform for India', flag: '🇮🇳', users: '300K+', category: 'Gig Economy' },
-    { name: 'FlexC', url: 'https://www.flexc.work', description: 'Flexible work platform for India', flag: '🇮🇳', users: '100K+', category: 'Flexible' },
-    { name: 'Hunar Online', url: 'https://www.hunaronline.com', description: 'Skill-based freelancing platform', flag: '🇮🇳', users: '200K+', category: 'Skill-Based' }
+  const remoteJobWebsites = [
+    { name: 'Remote.co', url: 'https://remote.co', description: 'Curated remote job listings across all industries', icon: '🏠', users: '5M+', category: 'Curated', type: 'Global Remote' },
+    { name: 'We Work Remotely', url: 'https://weworkremotely.com', description: 'Largest remote work job board in the world', icon: '🌍', users: '4M+', category: 'Largest', type: '100% Remote' },
+    { name: 'FlexJobs', url: 'https://www.flexjobs.com', description: 'Premium remote, part-time, and flexible jobs', icon: '⚡', users: '6M+', category: 'Premium', type: 'Flexible' },
+    { name: 'AngelList Remote', url: 'https://angel.co/jobs#find/f!%7B%22remote%22%3Atrue%7D', description: 'Remote startup jobs with equity options', icon: '🚀', users: '8M+', category: 'Startup', type: 'Equity Remote' },
+    { name: 'RemoteOK', url: 'https://remoteok.io', description: 'Tech-focused remote job board', icon: '💻', users: '2M+', category: 'Tech', type: 'Tech Remote' },
+    { name: 'Toptal', url: 'https://www.toptal.com', description: 'Exclusive network of top remote freelancers', icon: '⭐', users: '1M+', category: 'Elite', type: 'Top 3%' },
+    { name: 'Gitiles', url: 'https://gitiles.com', description: 'Remote jobs for developers and designers', icon: '🔧', users: '500K+', category: 'Developer', type: 'Dev/Design' },
+    { name: 'NoDesk', url: 'https://nodesk.co/remote-jobs', description: 'Remote work job board and resources', icon: '🏡', users: '1M+', category: 'Resource Hub', type: 'All Remote' },
+    { name: 'JustRemote', url: 'https://justremote.co', description: 'Global remote job opportunities', icon: '🌐', users: '3M+', category: 'Global', type: 'Worldwide' },
+    { name: 'Remotive', url: 'https://remotive.io', description: 'Tech remote jobs with community support', icon: '🤝', users: '1.5M+', category: 'Community', type: 'Tech + Community' },
+    { name: 'Remote India', url: 'https://remoteindia.io', description: 'Remote job opportunities for Indian professionals', icon: '🇮🇳', users: '200K+', category: 'India-Focused', type: 'Indian Remote' },
+    { name: 'Working Nomads', url: 'https://www.workingnomads.co', description: 'Curated remote job listings via email', icon: '📧', users: '800K+', category: 'Email Curated', type: 'Nomad-Friendly' }
   ];
 
   return (
@@ -867,6 +879,234 @@ const JobSuggestions = () => {
                     
                     {/* Decorative gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* International Job Websites Section */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-cyan-950/20 border-b">
+              <CardTitle className="gradient-text flex items-center gap-3 text-xl">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+                International Job Opportunities
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {internationalJobWebsites.length} Global Platforms
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {internationalJobWebsites.map((website, index) => (
+                  <div key={index} className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white via-purple-50/30 to-white dark:from-gray-900 dark:via-purple-900/10 dark:to-gray-900 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/20 transition-all duration-300 hover:-translate-y-1">
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">{website.flag}</div>
+                          <div>
+                            <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                              {website.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                                {website.category}
+                              </Badge>
+                              <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                                <MapPin className="w-3 h-3" />
+                                {website.countries}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="opacity-0 group-hover:opacity-100 transition-opacity bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40" 
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          </a>
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {website.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                          <Users className="w-3 h-3" />
+                          {website.users}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white text-xs px-3 py-1.5 h-auto"
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            Explore Global
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* National Job Websites Section */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 dark:from-orange-950/20 dark:via-red-950/20 dark:to-pink-950/20 border-b">
+              <CardTitle className="gradient-text flex items-center gap-3 text-xl">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl">
+                  <Home className="w-6 h-6 text-white" />
+                </div>
+                National Job Platforms (India)
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {nationalJobWebsites.length} Indian Platforms
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {nationalJobWebsites.map((website, index) => (
+                  <div key={index} className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white via-orange-50/30 to-white dark:from-gray-900 dark:via-orange-900/10 dark:to-gray-900 hover:shadow-lg hover:shadow-orange-100/50 dark:hover:shadow-orange-900/20 transition-all duration-300 hover:-translate-y-1">
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">{website.flag}</div>
+                          <div>
+                            <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                              {website.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                                {website.category}
+                              </Badge>
+                              <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                                <MapPin className="w-3 h-3" />
+                                {website.locations}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="opacity-0 group-hover:opacity-100 transition-opacity bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40" 
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          </a>
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {website.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                          <Users className="w-3 h-3" />
+                          {website.users}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-xs px-3 py-1.5 h-auto"
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            Apply Now
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Remote Job Websites Section */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-green-50 via-teal-50 to-cyan-50 dark:from-green-950/20 dark:via-teal-950/20 dark:to-cyan-950/20 border-b">
+              <CardTitle className="gradient-text flex items-center gap-3 text-xl">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl">
+                  <Wifi className="w-6 h-6 text-white" />
+                </div>
+                Remote Job Opportunities
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {remoteJobWebsites.length} Remote Platforms
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {remoteJobWebsites.map((website, index) => (
+                  <div key={index} className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white via-green-50/30 to-white dark:from-gray-900 dark:via-green-900/10 dark:to-gray-900 hover:shadow-lg hover:shadow-green-100/50 dark:hover:shadow-green-900/20 transition-all duration-300 hover:-translate-y-1">
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">{website.icon}</div>
+                          <div>
+                            <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                              {website.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                                {website.category}
+                              </Badge>
+                              <div className="flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400">
+                                <Zap className="w-3 h-3" />
+                                {website.type}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="opacity-0 group-hover:opacity-100 transition-opacity bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40" 
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          </a>
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {website.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-1 text-xs text-cyan-600 dark:text-cyan-400">
+                          <Users className="w-3 h-3" />
+                          {website.users}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white text-xs px-3 py-1.5 h-auto"
+                          asChild
+                        >
+                          <a href={website.url} target="_blank" rel="noopener noreferrer">
+                            Work Remote
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 ))}
               </div>
@@ -1186,7 +1426,7 @@ const JobSuggestions = () => {
                               <Badge variant="outline" className="text-xs px-2 py-0.5">
                                 {website.category}
                               </Badge>
-                              <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                              <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
                                 <Users className="w-3 h-3" />
                                 {website.users}
                               </div>
@@ -1210,9 +1450,9 @@ const JobSuggestions = () => {
                       </p>
                       
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                          <Globe className="w-3 h-3" />
-                          <span>Global Reach</span>
+                        <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                          <Users className="w-3 h-3" />
+                          {website.users}
                         </div>
                         <Button 
                           size="sm" 
@@ -1286,7 +1526,7 @@ const JobSuggestions = () => {
                       </p>
                       
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                           <Star className="w-3 h-3" />
                           <span>Local Focus</span>
                         </div>
