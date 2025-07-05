@@ -70,44 +70,101 @@ const ResumeAnalyzer = () => {
   const [isRetrying, setIsRetrying] = useState(false);
   const { toast } = useToast();
 
+  // Enhanced text cleaning function specifically for resume content
+  const cleanResumeText = (rawText: string): string => {
+    console.log('Original text length:', rawText.length);
+    
+    // Remove PDF metadata and formatting artifacts
+    let cleanedText = rawText
+      // Remove PDF/Word metadata patterns
+      .replace(/\/Type\s*\/\w+/g, '')
+      .replace(/\/\w+\s+\d+\s+\d+\s+R/g, '')
+      .replace(/\/Length\s+\d+/g, '')
+      .replace(/\/Filter\s*\/\w+/g, '')
+      .replace(/stream[\s\S]*?endstream/g, '')
+      .replace(/obj[\s\S]*?endobj/g, '')
+      .replace(/xref[\s\S]*?trailer/g, '')
+      .replace(/startxref[\s\S]*?%%EOF/g, '')
+      // Remove font and formatting codes
+      .replace(/\/F\d+\s+\d+\s+Tf/g, '')
+      .replace(/BT[\s\S]*?ET/g, ' ')
+      .replace(/q[\s\S]*?Q/g, ' ')
+      // Remove coordinate and positioning data
+      .replace(/\d+\.?\d*\s+\d+\.?\d*\s+\d+\.?\d*\s+[a-zA-Z]+/g, ' ')
+      .replace(/\d+\.?\d*\s+\d+\.?\d*\s+[mlhvz]/gi, ' ')
+      // Remove excessive whitespace and special characters
+      .replace(/[^\w\s@.,;:()\-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Extract meaningful resume content patterns
+    const resumePatterns = [
+      // Contact information
+      /[a-zA-Z]+\s+[a-zA-Z]+\s*[\w\s]*@[\w.-]+\.\w+/g,
+      // Phone numbers
+      /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g,
+      // Common resume sections
+      /(?:experience|education|skills|summary|objective|profile|work|employment|projects|certifications|achievements)[\s\S]{0,500}/gi,
+      // Job titles and companies
+      /(?:software|developer|engineer|manager|analyst|specialist|coordinator|director|senior|junior|lead)[\w\s]{0,50}/gi,
+      // Technical skills
+      /(?:javascript|python|java|react|angular|vue|node|sql|aws|azure|docker|git|html|css)[\w\s]{0,30}/gi,
+      // Degree information
+      /(?:bachelor|master|phd|degree|university|college|institute)[\w\s]{0,50}/gi
+    ];
+
+    let extractedContent = '';
+    resumePatterns.forEach(pattern => {
+      const matches = cleanedText.match(pattern);
+      if (matches) {
+        extractedContent += matches.join(' ') + ' ';
+      }
+    });
+
+    // If pattern extraction yielded good content, use it; otherwise use cleaned text
+    const finalText = extractedContent.length > 300 ? extractedContent : cleanedText;
+    
+    console.log('Cleaned text length:', finalText.length);
+    console.log('Sample cleaned text:', finalText.substring(0, 500));
+    
+    return finalText.trim();
+  };
+
   const extractTextFromFile = async (file: File): Promise<string> => {
     try {
       setUploadProgress(10);
       console.log('Starting text extraction for file:', file.name, 'Type:', file.type);
       
-      let text = '';
+      let rawText = '';
       
       if (file.type === 'application/pdf') {
         setUploadProgress(30);
-        text = await extractTextFromPDF(file);
+        rawText = await extractTextFromPDF(file);
       } else if (file.type === 'text/plain') {
         setUploadProgress(30);
-        text = await file.text();
+        rawText = await file.text();
       } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
         setUploadProgress(30);
-        text = await extractTextFromWordDoc(file);
+        rawText = await extractTextFromWordDoc(file);
       } else {
         setUploadProgress(30);
-        text = await file.text();
+        rawText = await file.text();
       }
       
       setUploadProgress(70);
       
-      // Improved text cleaning
-      text = text
-        .replace(/\s+/g, ' ')
-        .replace(/[^\w\s.,;:()\-@]/g, '')
-        .trim();
+      // Enhanced text cleaning specifically for resumes
+      const cleanedText = cleanResumeText(rawText);
       
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
       
-      if (text.length < 150) {
-        throw new Error('Document appears to contain insufficient content for analysis. Please ensure the file contains a complete resume with substantive text.');
+      if (cleanedText.length < 200) {
+        throw new Error('Document appears to contain insufficient readable content for analysis. Please ensure the file contains a complete resume with readable text content.');
       }
       
-      console.log('Text extraction successful, length:', text.length);
-      return text;
+      console.log('Text extraction successful, final length:', cleanedText.length);
+      return cleanedText;
       
     } catch (error) {
       console.error('Error extracting text from file:', error);
