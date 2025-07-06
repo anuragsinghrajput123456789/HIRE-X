@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { ExternalLink, MapPin, Globe, Briefcase, Users, DollarSign, Search, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { ExternalLink, Briefcase, Users, DollarSign, Search, Sparkles, Target, TrendingUp } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -13,19 +13,17 @@ interface Website {
   description: string;
   features: string[];
   stats: string;
-  categories?: string[];
-  locations?: string[];
+  locationType: 'international' | 'national' | 'both';
 }
 
-const internshipWebsites = [
+const internshipWebsites: Website[] = [
   {
     name: "Internshala",
     url: "https://internshala.com",
     description: "India's largest internship platform with 300,000+ opportunities",
     features: ["Work from home options", "Stipend guaranteed", "Certificate provided"],
     stats: "10M+ students registered",
-    categories: ["Engineering", "Business", "Design", "Marketing"],
-    locations: ["National (India)", "International", "Remote"]
+    locationType: 'national'
   },
   {
     name: "LinkedIn",
@@ -33,8 +31,7 @@ const internshipWebsites = [
     description: "Professional network with extensive internship opportunities worldwide",
     features: ["Industry connections", "Company insights", "Professional networking"],
     stats: "900M+ members globally",
-    categories: ["All Industries", "Remote Work", "Entry Level"],
-    locations: ["International", "National", "Global Remote"]
+    locationType: 'international'
   },
   {
     name: "Naukri.com",
@@ -42,8 +39,7 @@ const internshipWebsites = [
     description: "India's leading job portal with dedicated internship section",
     features: ["Indian market focus", "Resume building", "Company reviews"],
     stats: "70M+ registered jobseekers",
-    categories: ["IT", "Finance", "Sales", "HR"],
-    locations: ["National (India)", "International", "Hybrid"]
+    locationType: 'national'
   },
   {
     name: "Indeed",
@@ -51,8 +47,7 @@ const internshipWebsites = [
     description: "Global job search engine with comprehensive internship listings",
     features: ["Salary insights", "Company reviews", "Application tracking"],
     stats: "250M+ monthly visitors",
-    categories: ["Global Opportunities", "Remote", "Part-time"],
-    locations: ["International", "National", "Remote Global"]
+    locationType: 'international'
   },
   {
     name: "Glassdoor",
@@ -60,8 +55,7 @@ const internshipWebsites = [
     description: "Job search platform with company insights and internship opportunities",
     features: ["Company reviews", "Salary transparency", "Interview insights"],
     stats: "59M+ monthly users",
-    categories: ["Tech", "Finance", "Consulting", "Healthcare"],
-    locations: ["International", "National", "Remote"]
+    locationType: 'international'
   },
   {
     name: "AngelList (Wellfound)",
@@ -69,20 +63,18 @@ const internshipWebsites = [
     description: "Startup internships and early career opportunities worldwide",
     features: ["Equity compensation", "Direct founder contact", "Remote friendly"],
     stats: "130,000+ startups",
-    categories: ["Startups", "Tech", "Remote", "Equity"],
-    locations: ["International", "National", "Global Remote"]
+    locationType: 'international'
   }
 ];
 
-const freelancingWebsites = [
+const freelancingWebsites: Website[] = [
   {
     name: "Upwork",
     url: "https://www.upwork.com",
     description: "Global freelancing platform with diverse project opportunities",
     features: ["Payment protection", "Time tracking", "Skill tests"],
     stats: "18M+ freelancers worldwide",
-    categories: ["Web Development", "Design", "Writing", "Marketing"],
-    locations: ["International", "National", "Global Remote"]
+    locationType: 'international'
   },
   {
     name: "Fiverr",
@@ -90,8 +82,7 @@ const freelancingWebsites = [
     description: "Marketplace for digital services starting at $5",
     features: ["Gig-based system", "Quick turnaround", "Level progression"],
     stats: "4M+ active sellers",
-    categories: ["Graphics & Design", "Programming", "Video & Animation", "Music"],
-    locations: ["International", "National", "Remote Global"]
+    locationType: 'international'
   },
   {
     name: "Freelancer",
@@ -99,8 +90,7 @@ const freelancingWebsites = [
     description: "Contest-based and project-based freelancing platform",
     features: ["Milestone payments", "Contest opportunities", "Mobile app"],
     stats: "50M+ users globally",
-    categories: ["Programming", "Design", "Data Entry", "Marketing"],
-    locations: ["International", "National", "Global"]
+    locationType: 'international'
   },
   {
     name: "Toptal",
@@ -108,8 +98,7 @@ const freelancingWebsites = [
     description: "Elite network of top 3% freelance talent",
     features: ["Rigorous screening", "Premium rates", "Direct client matching"],
     stats: "Top 3% talent acceptance rate",
-    categories: ["Software Development", "Design", "Finance", "Project Management"],
-    locations: ["International", "Remote", "Premium Global"]
+    locationType: 'international'
   },
   {
     name: "99designs",
@@ -117,8 +106,7 @@ const freelancingWebsites = [
     description: "Design-focused freelancing platform with contest model",
     features: ["Design contests", "1-to-1 projects", "Design guarantee"],
     stats: "1M+ designers worldwide",
-    categories: ["Logo Design", "Web Design", "Print Design", "Packaging"],
-    locations: ["International", "National", "Global Remote"]
+    locationType: 'international'
   },
   {
     name: "Guru",
@@ -126,20 +114,18 @@ const freelancingWebsites = [
     description: "Professional freelancing platform with work room collaboration",
     features: ["SafePay protection", "Work room tools", "Invoice management"],
     stats: "3M+ members worldwide",
-    categories: ["Programming", "Design", "Writing", "Administrative"],
-    locations: ["International", "National", "Remote"]
+    locationType: 'international'
   }
 ];
 
-const jobSearchWebsites = [
+const jobSearchWebsites: Website[] = [
   {
     name: "LinkedIn Jobs",
     url: "https://www.linkedin.com/jobs/",
     description: "Professional networking platform with extensive job opportunities",
     features: ["AI-powered matching", "Company insights", "Professional networking"],
     stats: "900M+ members, 25M+ jobs",
-    categories: ["All Industries", "Remote Work", "Executive Roles"],
-    locations: ["International", "National", "Global Remote"]
+    locationType: 'international'
   },
   {
     name: "Indeed",
@@ -147,8 +133,7 @@ const jobSearchWebsites = [
     description: "World's largest job search engine with millions of listings",
     features: ["Resume upload", "Salary insights", "Company reviews"],
     stats: "250M+ monthly visitors",
-    categories: ["Global Jobs", "Remote", "Part-time", "Full-time"],
-    locations: ["International", "National", "Local", "Remote"]
+    locationType: 'international'
   },
   {
     name: "Glassdoor",
@@ -156,8 +141,7 @@ const jobSearchWebsites = [
     description: "Job search with company reviews and salary transparency",
     features: ["Company reviews", "Salary data", "Interview preparation"],
     stats: "59M+ monthly users",
-    categories: ["Tech", "Finance", "Healthcare", "Consulting"],
-    locations: ["International", "National", "Remote"]
+    locationType: 'international'
   },
   {
     name: "Monster",
@@ -165,8 +149,7 @@ const jobSearchWebsites = [
     description: "Global employment website for job seekers and employers",
     features: ["Career advice", "Resume services", "Job alerts"],
     stats: "6M+ job seekers monthly",
-    categories: ["Entry Level", "Mid-Career", "Senior Roles"],
-    locations: ["International", "National", "Regional"]
+    locationType: 'international'
   },
   {
     name: "ZipRecruiter",
@@ -174,8 +157,7 @@ const jobSearchWebsites = [
     description: "AI-powered job matching platform for quick applications",
     features: ["One-click applications", "Mobile app", "Instant matching"],
     stats: "2.8M+ employers",
-    categories: ["Quick Apply", "Local Jobs", "Remote Work"],
-    locations: ["National (US)", "International", "Remote"]
+    locationType: 'national'
   },
   {
     name: "CareerBuilder",
@@ -183,16 +165,15 @@ const jobSearchWebsites = [
     description: "Comprehensive job search platform with career resources",
     features: ["Resume builder", "Career advice", "Skills assessment"],
     stats: "24M+ job seekers",
-    categories: ["Corporate", "Government", "Healthcare", "Retail"],
-    locations: ["National", "International", "Local"]
+    locationType: 'national'
   }
 ];
 
 const JobSuggestions = () => {
   const [jobQuery, setJobQuery] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [matchedJobs, setMatchedJobs] = useState<Website[]>([]);
+  const [locationFilter, setLocationFilter] = useState<'all' | 'international' | 'national'>('all');
 
   const handleJobSearch = async () => {
     if (!jobQuery.trim()) return;
@@ -206,13 +187,27 @@ const JobSuggestions = () => {
     const allWebsites = [...jobSearchWebsites, ...internshipWebsites, ...freelancingWebsites];
     const keywords = jobQuery.toLowerCase().split(' ');
     
-    const matches = allWebsites.filter(website => {
-      const searchText = `${website.name} ${website.description} ${website.categories?.join(' ') || ''}`.toLowerCase();
+    let matches = allWebsites.filter(website => {
+      const searchText = `${website.name} ${website.description}`.toLowerCase();
       return keywords.some(keyword => searchText.includes(keyword));
     });
+
+    // Apply location filter
+    if (locationFilter !== 'all') {
+      matches = matches.filter(website => 
+        website.locationType === locationFilter || website.locationType === 'both'
+      );
+    }
     
     setMatchedJobs(matches.slice(0, 6)); // Limit to 6 results
     setIsSearching(false);
+  };
+
+  const filterWebsites = (websites: Website[]) => {
+    if (locationFilter === 'all') return websites;
+    return websites.filter(website => 
+      website.locationType === locationFilter || website.locationType === 'both'
+    );
   };
 
   const WebsiteCard = ({ website, icon: Icon, accentColor }: { website: Website, icon: any, accentColor: string }) => (
@@ -250,34 +245,15 @@ const JobSuggestions = () => {
             <span className="text-gray-300">{website.stats}</span>
           </div>
           
-          {website.categories && (
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Categories</h4>
-              <div className="flex flex-wrap gap-2">
-                {website.categories.map((category, i) => (
-                  <Badge key={i} className="text-xs bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 hover:from-blue-500/30 hover:to-purple-500/30 border border-blue-500/30 backdrop-blur-sm">
-                    {category}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {website.locations && (
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-red-400" />
-                Locations
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {website.locations.map((location, i) => (
-                  <Badge key={i} className="text-xs bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 backdrop-blur-sm">
-                    {location}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="flex justify-end">
+            <Badge className={`text-xs ${
+              website.locationType === 'international' 
+                ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30'
+                : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-500/30'
+            } backdrop-blur-sm`}>
+              {website.locationType === 'international' ? '🌍 International' : '🏠 National'}
+            </Badge>
+          </div>
           
           <Button asChild className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl border-0 hover:scale-[1.02]">
             <a href={website.url} target="_blank" rel="noopener noreferrer">
@@ -344,17 +320,19 @@ const JobSuggestions = () => {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label htmlFor="job-description" className="block text-base font-semibold text-white">
-                    📝 Additional Details (Optional)
+                  <label htmlFor="location-filter" className="block text-base font-semibold text-white">
+                    🌍 Location Preference
                   </label>
-                  <Textarea
-                    id="job-description"
-                    placeholder="Describe your experience, preferred location, or specific requirements..."
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    rows={4}
-                    className="text-lg border-2 border-gray-600 bg-gray-800/50 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl resize-none backdrop-blur-sm"
-                  />
+                  <Select value={locationFilter} onValueChange={(value: 'all' | 'international' | 'national') => setLocationFilter(value)}>
+                    <SelectTrigger className="h-14 text-lg border-2 border-gray-600 bg-gray-800/50 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl backdrop-blur-sm">
+                      <SelectValue placeholder="Select location preference" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                      <SelectItem value="all">🌐 All Locations</SelectItem>
+                      <SelectItem value="international">🌍 International</SelectItem>
+                      <SelectItem value="national">🏠 National</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <Button 
@@ -400,6 +378,25 @@ const JobSuggestions = () => {
           )}
         </section>
 
+        {/* Location Filter Section */}
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-4 p-4 bg-gradient-to-r from-gray-800/90 to-gray-900/90 rounded-2xl backdrop-blur-xl shadow-2xl">
+              <span className="text-white font-semibold text-lg">Filter by Location:</span>
+              <Select value={locationFilter} onValueChange={(value: 'all' | 'international' | 'national') => setLocationFilter(value)}>
+                <SelectTrigger className="w-48 h-12 border-2 border-gray-600 bg-gray-800/50 text-white focus:border-blue-500 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                  <SelectItem value="all">🌐 All Locations</SelectItem>
+                  <SelectItem value="international">🌍 International</SelectItem>
+                  <SelectItem value="national">🏠 National</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </section>
+
         {/* Enhanced Internship Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
@@ -412,7 +409,7 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {internshipWebsites.map((website, index) => (
+            {filterWebsites(internshipWebsites).map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
@@ -428,14 +425,14 @@ const JobSuggestions = () => {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
               <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl shadow-lg">
-                <Globe className="w-10 h-10 text-white" />
+                <DollarSign className="w-10 h-10 text-white" />
               </div>
               💼 Freelancing Platforms
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Build your independent career with global freelancing opportunities</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {freelancingWebsites.map((website, index) => (
+            {filterWebsites(freelancingWebsites).map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
@@ -458,11 +455,11 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {jobSearchWebsites.map((website, index) => (
+            {filterWebsites(jobSearchWebsites).map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
-                icon={MapPin} 
+                icon={Briefcase} 
                 accentColor="bg-gradient-to-r from-red-500 to-pink-500"
               />
             ))}
