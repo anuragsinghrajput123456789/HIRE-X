@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -110,31 +111,58 @@ const openSourceProjects = [
   }
 ];
 
-const realInternshipWebsites = [
+const internshipWebsites = [
   {
     name: "Internshala",
     url: "https://internshala.com",
     description: "India's largest internship platform with 300,000+ opportunities",
     features: ["Work from home options", "Stipend guaranteed", "Certificate provided"],
-    stats: "10M+ students registered"
+    stats: "10M+ students registered",
+    categories: ["Engineering", "Business", "Design", "Marketing"]
+  },
+  {
+    name: "LinkedIn",
+    url: "https://www.linkedin.com/jobs/internship-jobs/",
+    description: "Professional network with extensive internship opportunities worldwide",
+    features: ["Industry connections", "Company insights", "Professional networking"],
+    stats: "900M+ members globally",
+    categories: ["All Industries", "Remote Work", "Entry Level"]
+  },
+  {
+    name: "Naukri.com",
+    url: "https://www.naukri.com/internship-jobs",
+    description: "India's leading job portal with dedicated internship section",
+    features: ["Indian market focus", "Resume building", "Company reviews"],
+    stats: "70M+ registered jobseekers",
+    categories: ["IT", "Finance", "Sales", "HR"]
+  },
+  {
+    name: "Indeed",
+    url: "https://www.indeed.com/q-internship-jobs.html",
+    description: "Global job search engine with comprehensive internship listings",
+    features: ["Salary insights", "Company reviews", "Application tracking"],
+    stats: "250M+ monthly visitors",
+    categories: ["Global Opportunities", "Remote", "Part-time"]
+  },
+  {
+    name: "Glassdoor",
+    url: "https://www.glassdoor.com/Job/internship-jobs-SRCH_KO0,10.htm",
+    description: "Job search platform with company insights and internship opportunities",
+    features: ["Company reviews", "Salary transparency", "Interview insights"],
+    stats: "59M+ monthly users",
+    categories: ["Tech", "Finance", "Consulting", "Healthcare"]
   },
   {
     name: "AngelList (Wellfound)",
-    url: "https://wellfound.com",
+    url: "https://wellfound.com/jobs",
     description: "Startup internships and early career opportunities worldwide",
     features: ["Equity compensation", "Direct founder contact", "Remote friendly"],
-    stats: "130,000+ startups"
-  },
-  {
-    name: "Forage",
-    url: "https://www.theforage.com",
-    description: "Virtual work experiences from top companies",
-    features: ["Free virtual internships", "Self-paced learning", "Industry insights"],
-    stats: "3M+ participants globally"
+    stats: "130,000+ startups",
+    categories: ["Startups", "Tech", "Remote", "Equity"]
   }
 ];
 
-const internationalFreelancingWebsites = [
+const freelancingWebsites = [
   {
     name: "Upwork",
     url: "https://www.upwork.com",
@@ -142,6 +170,14 @@ const internationalFreelancingWebsites = [
     features: ["Payment protection", "Time tracking", "Skill tests"],
     stats: "18M+ freelancers worldwide",
     categories: ["Web Development", "Design", "Writing", "Marketing"]
+  },
+  {
+    name: "Fiverr",
+    url: "https://www.fiverr.com",
+    description: "Marketplace for digital services starting at $5",
+    features: ["Gig-based system", "Quick turnaround", "Level progression"],
+    stats: "4M+ active sellers",
+    categories: ["Graphics & Design", "Programming", "Video & Animation", "Music"]
   },
   {
     name: "Freelancer",
@@ -158,25 +194,14 @@ const internationalFreelancingWebsites = [
     features: ["Rigorous screening", "Premium rates", "Direct client matching"],
     stats: "Top 3% talent acceptance rate",
     categories: ["Software Development", "Design", "Finance", "Project Management"]
-  }
-];
-
-const nationalFreelancingWebsites = [
-  {
-    name: "Truelancer",
-    url: "https://www.truelancer.com",
-    description: "Indian freelancing platform with local payment options",
-    features: ["INR payments", "Local support", "Escrow protection"],
-    stats: "1M+ freelancers in India",
-    categories: ["Web Development", "Content Writing", "Digital Marketing"]
   },
   {
-    name: "WorknHire",
-    url: "https://www.worknhire.com",
-    description: "Indian platform connecting freelancers with businesses",
-    features: ["Zero commission model", "Direct communication", "Local focus"],
-    stats: "500K+ registered users",
-    categories: ["IT Services", "Content Creation", "Business Services"]
+    name: "99designs",
+    url: "https://99designs.com",
+    description: "Design-focused freelancing platform with contest model",
+    features: ["Design contests", "1-to-1 projects", "Design guarantee"],
+    stats: "1M+ designers worldwide",
+    categories: ["Logo Design", "Web Design", "Print Design", "Packaging"]
   },
   {
     name: "Guru",
@@ -185,6 +210,57 @@ const nationalFreelancingWebsites = [
     features: ["SafePay protection", "Work room tools", "Invoice management"],
     stats: "3M+ members worldwide",
     categories: ["Programming", "Design", "Writing", "Administrative"]
+  }
+];
+
+const jobSearchWebsites = [
+  {
+    name: "LinkedIn Jobs",
+    url: "https://www.linkedin.com/jobs/",
+    description: "Professional networking platform with extensive job opportunities",
+    features: ["AI-powered matching", "Company insights", "Professional networking"],
+    stats: "900M+ members, 25M+ jobs",
+    categories: ["All Industries", "Remote Work", "Executive Roles"]
+  },
+  {
+    name: "Indeed",
+    url: "https://www.indeed.com",
+    description: "World's largest job search engine with millions of listings",
+    features: ["Resume upload", "Salary insights", "Company reviews"],
+    stats: "250M+ monthly visitors",
+    categories: ["Global Jobs", "Remote", "Part-time", "Full-time"]
+  },
+  {
+    name: "Glassdoor",
+    url: "https://www.glassdoor.com",
+    description: "Job search with company reviews and salary transparency",
+    features: ["Company reviews", "Salary data", "Interview preparation"],
+    stats: "59M+ monthly users",
+    categories: ["Tech", "Finance", "Healthcare", "Consulting"]
+  },
+  {
+    name: "Monster",
+    url: "https://www.monster.com",
+    description: "Global employment website for job seekers and employers",
+    features: ["Career advice", "Resume services", "Job alerts"],
+    stats: "6M+ job seekers monthly",
+    categories: ["Entry Level", "Mid-Career", "Senior Roles"]
+  },
+  {
+    name: "ZipRecruiter",
+    url: "https://www.ziprecruiter.com",
+    description: "AI-powered job matching platform for quick applications",
+    features: ["One-click applications", "Mobile app", "Instant matching"],
+    stats: "2.8M+ employers",
+    categories: ["Quick Apply", "Local Jobs", "Remote Work"]
+  },
+  {
+    name: "CareerBuilder",
+    url: "https://www.careerbuilder.com",
+    description: "Comprehensive job search platform with career resources",
+    features: ["Resume builder", "Career advice", "Skills assessment"],
+    stats: "24M+ job seekers",
+    categories: ["Corporate", "Government", "Healthcare", "Retail"]
   }
 ];
 
@@ -300,26 +376,47 @@ const JobSuggestions = () => {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Real Internship Websites</h2>
+        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <Users className="w-6 h-6 text-blue-600" />
+          Internship Opportunities
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {realInternshipWebsites.map((website, index) => (
-            <Card key={index}>
+          {internshipWebsites.map((website, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>{website.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-purple-600" />
+                  {website.name}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>{website.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {website.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {website.stats}</p>
-                <Button asChild>
-                  <a href={website.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                <CardDescription className="mb-3">{website.description}</CardDescription>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-sm text-gray-700">Features:</strong>
+                    <ul className="list-disc pl-5 mt-1 text-sm">
+                      {website.features.map((feature, i) => (
+                        <li key={i}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="text-sm"><strong>Stats:</strong> {website.stats}</p>
+                  {website.categories && (
+                    <div>
+                      <strong className="text-sm text-gray-700">Categories:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {website.categories.map((category, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{category}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <Button asChild className="w-full mt-3">
+                    <a href={website.url} target="_blank" rel="noopener noreferrer">
+                      Find Internships <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -327,34 +424,47 @@ const JobSuggestions = () => {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">International Freelancing Websites</h2>
+        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <Globe className="w-6 h-6 text-green-600" />
+          Freelancing Platforms
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {internationalFreelancingWebsites.map((website, index) => (
-            <Card key={index}>
+          {freelancingWebsites.map((website, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>{website.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  {website.name}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>{website.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {website.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {website.stats}</p>
-                {website.categories && (
-                  <div className="mt-2">
-                    <strong>Categories:</strong>
-                    {website.categories.map((category, i) => (
-                      <Badge key={i} className="mr-1">{category}</Badge>
-                    ))}
+                <CardDescription className="mb-3">{website.description}</CardDescription>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-sm text-gray-700">Features:</strong>
+                    <ul className="list-disc pl-5 mt-1 text-sm">
+                      {website.features.map((feature, i) => (
+                        <li key={i}>{feature}</li>
+                      ))}
+                    </ul>
                   </div>
-                )}
-                <Button asChild>
-                  <a href={website.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                  <p className="text-sm"><strong>Stats:</strong> {website.stats}</p>
+                  {website.categories && (
+                    <div>
+                      <strong className="text-sm text-gray-700">Categories:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {website.categories.map((category, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{category}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <Button asChild className="w-full mt-3">
+                    <a href={website.url} target="_blank" rel="noopener noreferrer">
+                      Start Freelancing <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -362,34 +472,47 @@ const JobSuggestions = () => {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">National Freelancing Websites</h2>
+        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <MapPin className="w-6 h-6 text-red-600" />
+          Job Search Websites
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {nationalFreelancingWebsites.map((website, index) => (
-            <Card key={index}>
+          {jobSearchWebsites.map((website, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>{website.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                  {website.name}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>{website.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {website.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {website.stats}</p>
-                {website.categories && (
-                  <div className="mt-2">
-                    <strong>Categories:</strong>
-                    {website.categories.map((category, i) => (
-                      <Badge key={i} className="mr-1">{category}</Badge>
-                    ))}
+                <CardDescription className="mb-3">{website.description}</CardDescription>
+                <div className="space-y-3">
+                  <div>
+                    <strong className="text-sm text-gray-700">Features:</strong>
+                    <ul className="list-disc pl-5 mt-1 text-sm">
+                      {website.features.map((feature, i) => (
+                        <li key={i}>{feature}</li>
+                      ))}
+                    </ul>
                   </div>
-                )}
-                <Button asChild>
-                  <a href={website.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                  <p className="text-sm"><strong>Stats:</strong> {website.stats}</p>
+                  {website.categories && (
+                    <div>
+                      <strong className="text-sm text-gray-700">Categories:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {website.categories.map((category, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{category}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <Button asChild className="w-full mt-3">
+                    <a href={website.url} target="_blank" rel="noopener noreferrer">
+                      Search Jobs <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -400,3 +523,4 @@ const JobSuggestions = () => {
 };
 
 export default JobSuggestions;
+
