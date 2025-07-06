@@ -1,10 +1,11 @@
 
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { ExternalLink, MapPin, Globe, Briefcase, Users, DollarSign } from 'lucide-react';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { ExternalLink, MapPin, Globe, Briefcase, Users, DollarSign, Search, Sparkles } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -14,102 +15,6 @@ interface Website {
   stats: string;
   categories?: string[];
 }
-
-const realWorldBootcamps = [
-  {
-    name: "General Assembly",
-    url: "https://generalassemb.ly/",
-    description: "Immersive bootcamps in web development, data science, and UX design.",
-    features: ["Career coaching", "Project-based learning", "Industry-recognized certificate"],
-    stats: "90%+ job placement rate"
-  },
-  {
-    name: "Flatiron School",
-    url: "https://flatironschool.com/",
-    description: "Intensive coding bootcamps with a focus on software engineering and data science.",
-    features: ["Money-back guarantee", "Personalized career support", "Alumni network"],
-    stats: "86% job placement rate"
-  },
-  {
-    name: "App Academy",
-    url: "https://www.appacademy.com/",
-    description: "Full-stack web development bootcamps with a deferred tuition option.",
-    features: ["Deferred tuition", "Pair programming", "Real-world projects"],
-    stats: "81% job placement rate"
-  }
-];
-
-const onlineLearningPlatforms = [
-  {
-    name: "Coursera",
-    url: "https://www.coursera.org/",
-    description: "Online courses, Specializations, and degrees from top universities and institutions.",
-    features: ["University-backed courses", "Certificates", "Flexible learning"],
-    stats: "77M+ learners worldwide"
-  },
-  {
-    name: "edX",
-    url: "https://www.edx.org/",
-    description: "Online courses from the world's best universities.",
-    features: ["Verified certificates", "Degree programs", "Self-paced learning"],
-    stats: "39M+ learners globally"
-  },
-  {
-    name: "Udemy",
-    url: "https://www.udemy.com/",
-    description: "Largest selection of online courses for learning and upskilling.",
-    features: ["Lifetime access", "Affordable pricing", "Wide range of topics"],
-    stats: "54M+ learners worldwide"
-  }
-];
-
-const codingChallengeWebsites = [
-  {
-    name: "LeetCode",
-    url: "https://leetcode.com/",
-    description: "Platform for improving coding skills with challenges and competitions.",
-    features: ["Coding challenges", "Mock interviews", "Community support"],
-    stats: "1M+ active users"
-  },
-  {
-    name: "HackerRank",
-    url: "https://www.hackerrank.com/",
-    description: "Competitive programming platform for assessing coding skills.",
-    features: ["Coding contests", "Skill certifications", "Company challenges"],
-    stats: "18M+ developers worldwide"
-  },
-  {
-    name: "CodeSignal",
-    url: "https://codesignal.com/",
-    description: "Skills-based assessment platform for technical recruiting.",
-    features: ["Coding assessments", "Tech screening", "Interview practice"],
-    stats: "5M+ candidates assessed"
-  }
-];
-
-const openSourceProjects = [
-  {
-    name: "React",
-    url: "https://reactjs.org/",
-    description: "A JavaScript library for building user interfaces.",
-    features: ["Component-based", "Virtual DOM", "Large community"],
-    stats: "170K+ stars on GitHub"
-  },
-  {
-    name: "Angular",
-    url: "https://angular.io/",
-    description: "A platform for building mobile and desktop web applications.",
-    features: ["TypeScript-based", "Dependency injection", "Comprehensive framework"],
-    stats: "70K+ stars on GitHub"
-  },
-  {
-    name: "Vue.js",
-    url: "https://vuejs.org/",
-    description: "A progressive JavaScript framework for building user interfaces.",
-    features: ["Easy to learn", "Flexible", "Reactive components"],
-    stats: "180K+ stars on GitHub"
-  }
-];
 
 const internshipWebsites = [
   {
@@ -265,114 +170,149 @@ const jobSearchWebsites = [
 ];
 
 const JobSuggestions = () => {
+  const [jobQuery, setJobQuery] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [matchedJobs, setMatchedJobs] = useState<Website[]>([]);
+
+  const handleJobSearch = async () => {
+    if (!jobQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    // Simulate AI processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simple keyword matching for demonstration
+    const allWebsites = [...jobSearchWebsites, ...internshipWebsites, ...freelancingWebsites];
+    const keywords = jobQuery.toLowerCase().split(' ');
+    
+    const matches = allWebsites.filter(website => {
+      const searchText = `${website.name} ${website.description} ${website.categories?.join(' ') || ''}`.toLowerCase();
+      return keywords.some(keyword => searchText.includes(keyword));
+    });
+    
+    setMatchedJobs(matches.slice(0, 6)); // Limit to 6 results
+    setIsSearching(false);
+  };
+
   return (
     <div className="container mx-auto py-8">
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Real-World Bootcamps</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {realWorldBootcamps.map((bootcamp, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle>{bootcamp.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{bootcamp.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {bootcamp.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {bootcamp.stats}</p>
-                <Button asChild>
-                  <a href={bootcamp.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+      {/* AI Job Matching Section */}
+      <section className="mb-12">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Sparkles className="w-8 h-8 text-purple-600" />
+            AI Job Matching
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Tell us about your dream job and let AI find the best platforms and opportunities for you
+          </p>
         </div>
-      </section>
+        
+        <Card className="max-w-4xl mx-auto mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-6 h-6 text-blue-600" />
+              Job Search Assistant
+            </CardTitle>
+            <CardDescription>
+              Enter your desired job title, skills, or career interests
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label htmlFor="job-query" className="block text-sm font-medium mb-2">
+                Job Title or Keywords
+              </label>
+              <Input
+                id="job-query"
+                placeholder="e.g., Software Developer, Marketing Manager, Data Scientist"
+                value={jobQuery}
+                onChange={(e) => setJobQuery(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="job-description" className="block text-sm font-medium mb-2">
+                Additional Details (Optional)
+              </label>
+              <Textarea
+                id="job-description"
+                placeholder="Describe your experience, preferred location, or specific requirements..."
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <Button 
+              onClick={handleJobSearch} 
+              disabled={isSearching || !jobQuery.trim()}
+              className="w-full"
+            >
+              {isSearching ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  AI is analyzing...
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Find Matching Jobs
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Online Learning Platforms</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {onlineLearningPlatforms.map((platform, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle>{platform.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{platform.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {platform.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {platform.stats}</p>
-                <Button asChild>
-                  <a href={platform.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Coding Challenge Websites</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {codingChallengeWebsites.map((challenge, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle>{challenge.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{challenge.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {challenge.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {challenge.stats}</p>
-                <Button asChild>
-                  <a href={challenge.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Open Source Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {openSourceProjects.map((project, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle>{project.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>{project.description}</CardDescription>
-                <ul className="list-disc pl-5 mt-2">
-                  {project.features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="mt-2"><strong>Stats:</strong> {project.stats}</p>
-                <Button asChild>
-                  <a href={project.url} target="_blank" rel="noopener noreferrer">
-                    Visit Website <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* AI Matched Results */}
+        {matchedJobs.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-2xl font-semibold mb-4 text-center">
+              🎯 AI Matched Opportunities for "{jobQuery}"
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {matchedJobs.map((website, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow border-2 border-purple-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-purple-600" />
+                      {website.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="mb-3">{website.description}</CardDescription>
+                    <div className="space-y-3">
+                      <div>
+                        <strong className="text-sm text-gray-700">Features:</strong>
+                        <ul className="list-disc pl-5 mt-1 text-sm">
+                          {website.features.map((feature, i) => (
+                            <li key={i}>{feature}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="text-sm"><strong>Stats:</strong> {website.stats}</p>
+                      {website.categories && (
+                        <div>
+                          <strong className="text-sm text-gray-700">Categories:</strong>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {website.categories.map((category, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">{category}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <Button asChild className="w-full mt-3">
+                        <a href={website.url} target="_blank" rel="noopener noreferrer">
+                          Explore Jobs <ExternalLink className="ml-2 h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="mb-8">
@@ -523,4 +463,3 @@ const JobSuggestions = () => {
 };
 
 export default JobSuggestions;
-
