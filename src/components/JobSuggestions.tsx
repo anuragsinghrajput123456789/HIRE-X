@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, Home, Sparkles, MapPin, Clock, Award } from 'lucide-react';
+import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, MapPin, Sparkles } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -223,69 +223,69 @@ const scholarshipWebsites: Website[] = [
 
 const JobSuggestions = () => {
   const WebsiteCard = ({ website, icon: Icon, accentColor }: { website: Website, icon: any, accentColor: string }) => (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-800/95 dark:via-gray-900/95 dark:to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 relative overflow-hidden">
+    <Card className="group relative h-full flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-800/95 dark:via-gray-900/95 dark:to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 overflow-hidden">
       {/* Animated background glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
-      <CardHeader className="pb-4 relative z-10">
-        <CardTitle className="flex items-center gap-3 text-xl text-gray-900 dark:text-white">
-          <div className={`p-3 rounded-2xl ${accentColor} group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-            <Icon className="w-6 h-6 text-white" />
+      <CardHeader className="pb-4 relative z-10 flex-shrink-0">
+        <CardTitle className="flex items-start justify-between gap-3 text-lg text-gray-900 dark:text-white">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className={`p-2.5 rounded-xl ${accentColor} group-hover:scale-110 transition-transform duration-300 shadow-lg flex-shrink-0`}>
+              <Icon className="w-5 h-5 text-white" />
+            </div>
+            <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300 font-semibold truncate">{website.name}</span>
           </div>
-          <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">{website.name}</span>
           
-          {/* Enhanced location badge with icons and animations */}
-          <div className="ml-auto flex items-center">
+          {/* Enhanced location badge */}
+          <div className="flex-shrink-0">
             {website.locationType === 'international' && (
-              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-300 border-blue-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
+              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-300 border-blue-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
                 <Globe className="w-3 h-3 animate-spin-slow" />
-                <span className="text-xs font-semibold">International</span>
-                <Sparkles className="w-3 h-3 animate-pulse" />
+                <span className="text-xs font-medium">Global</span>
               </Badge>
             )}
             {website.locationType === 'national' && (
-              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 dark:text-green-300 border-green-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-300">
+              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 dark:text-green-300 border-green-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
                 <MapPin className="w-3 h-3 animate-pulse" />
-                <span className="text-xs font-semibold">National</span>
-                <Target className="w-3 h-3 animate-ping" />
+                <span className="text-xs font-medium">Local</span>
               </Badge>
             )}
             {website.locationType === 'both' && (
-              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-300 border-purple-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
-                <Globe className="w-3 h-3 animate-spin-slow" />
-                <span className="text-xs font-semibold">Global</span>
+              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-300 border-purple-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
                 <Sparkles className="w-3 h-3 animate-bounce" />
+                <span className="text-xs font-medium">Both</span>
               </Badge>
             )}
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5 relative z-10">
-        <CardDescription className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">{website.description}</CardDescription>
-        
-        <div className="space-y-4">
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+      
+      <CardContent className="flex-1 flex flex-col justify-between space-y-4 relative z-10 px-6 pb-6">
+        <div className="space-y-4 flex-1">
+          <CardDescription className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm line-clamp-2">{website.description}</CardDescription>
+          
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-green-500" />
               Key Features
             </h4>
-            <ul className="grid grid-cols-1 gap-2 text-sm text-gray-600 dark:text-gray-300">
-              {website.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-2 flex-shrink-0 animate-pulse"></div>
-                  {feature}
+            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+              {website.features.slice(0, 3).map((feature, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="line-clamp-1">{feature}</span>
                 </li>
               ))}
             </ul>
           </div>
-          
-          <Button asChild className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl border-0 hover:scale-[1.02] group">
-            <a href={website.url} target="_blank" rel="noopener noreferrer">
-              <span>Explore Opportunities</span>
-              <ExternalLink className="ml-2 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-            </a>
-          </Button>
         </div>
+          
+        <Button asChild className="w-full mt-4 h-10 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg border-0 hover:scale-[1.02] group/btn">
+          <a href={website.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+            <span>Explore Now</span>
+            <ExternalLink className="ml-2 h-4 w-4 group-hover/btn:rotate-12 transition-transform duration-300" />
+          </a>
+        </Button>
       </CardContent>
     </Card>
   );
@@ -299,19 +299,19 @@ const JobSuggestions = () => {
         <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-400/10 rounded-full blur-3xl animate-float animate-delay-500"></div>
       </div>
 
-      <div className="container mx-auto py-12 px-4 relative z-10">
+      <div className="container mx-auto py-12 px-4 relative z-10 max-w-7xl">
         {/* Enhanced Job Search Section */}
-        <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
+        <section className="mb-16">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl shadow-lg animate-pulse">
-                <Briefcase className="w-10 h-10 text-white" />
+                <Briefcase className="w-8 h-8 text-white" />
               </div>
-              🔍 Job Search Portals
+              Job Search Portals
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {jobSearchWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -324,17 +324,17 @@ const JobSuggestions = () => {
         </section>
 
         {/* Enhanced Internship Section */}
-        <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
+        <section className="mb-16">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg animate-bounce">
-                <Users className="w-10 h-10 text-white" />
+                <Users className="w-8 h-8 text-white" />
               </div>
-              🎓 Internship Opportunities
+              Internship Opportunities
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {internshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -347,17 +347,17 @@ const JobSuggestions = () => {
         </section>
 
         {/* Enhanced Scholarship Section */}
-        <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
+        <section className="mb-16">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl shadow-lg animate-pulse">
-                <GraduationCap className="w-10 h-10 text-white" />
+                <GraduationCap className="w-8 h-8 text-white" />
               </div>
-              🎓 Scholarship Opportunities
+              Scholarship Opportunities
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {scholarshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -370,17 +370,17 @@ const JobSuggestions = () => {
         </section>
 
         {/* Enhanced Freelancing Section */}
-        <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
+        <section className="mb-16">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl shadow-lg animate-spin-slow">
-                <DollarSign className="w-10 h-10 text-white" />
+                <DollarSign className="w-8 h-8 text-white" />
               </div>
-              💼 Freelancing Platforms
+              Freelancing Platforms
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Build your independent career with global freelancing opportunities</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Build your independent career with global freelancing opportunities</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {freelancingWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
