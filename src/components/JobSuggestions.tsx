@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Switch } from './ui/switch';
-import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, MapPin } from 'lucide-react';
+import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, Home, Sparkles } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -153,31 +151,45 @@ const scholarshipWebsites: Website[] = [
 ];
 
 const JobSuggestions = () => {
-  const [showInternational, setShowInternational] = useState(true);
-
-  const filterWebsites = (websites: Website[]) => {
-    if (showInternational) {
-      return websites.filter(website => 
-        website.locationType === 'international' || website.locationType === 'both'
-      );
-    } else {
-      return websites.filter(website => 
-        website.locationType === 'national' || website.locationType === 'both'
-      );
-    }
-  };
-
   const WebsiteCard = ({ website, icon: Icon, accentColor }: { website: Website, icon: any, accentColor: string }) => (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20">
-      <CardHeader className="pb-4">
+    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 relative overflow-hidden">
+      {/* Animated background glow */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <CardHeader className="pb-4 relative z-10">
         <CardTitle className="flex items-center gap-3 text-xl text-white">
           <div className={`p-3 rounded-2xl ${accentColor} group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
           <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text transition-all duration-300">{website.name}</span>
+          
+          {/* Stylish location badge with icons and animations */}
+          <div className="ml-auto flex items-center">
+            {website.locationType === 'international' && (
+              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
+                <Globe className="w-3 h-3 animate-spin-slow" />
+                <span className="text-xs font-semibold">International</span>
+                <Sparkles className="w-3 h-3 animate-pulse" />
+              </Badge>
+            )}
+            {website.locationType === 'national' && (
+              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-300">
+                <Home className="w-3 h-3 animate-pulse" />
+                <span className="text-xs font-semibold">National</span>
+                <Target className="w-3 h-3 animate-ping" />
+              </Badge>
+            )}
+            {website.locationType === 'both' && (
+              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
+                <Globe className="w-3 h-3 animate-spin-slow" />
+                <span className="text-xs font-semibold">Global</span>
+                <Sparkles className="w-3 h-3 animate-bounce" />
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 relative z-10">
         <CardDescription className="text-gray-300 leading-relaxed text-base">{website.description}</CardDescription>
         
         <div className="space-y-4">
@@ -189,30 +201,17 @@ const JobSuggestions = () => {
             <ul className="grid grid-cols-1 gap-2 text-sm text-gray-300">
               {website.features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mt-2 flex-shrink-0 animate-pulse"></div>
                   {feature}
                 </li>
               ))}
             </ul>
           </div>
           
-          <div className="flex justify-end">
-            <Badge className={`text-xs ${
-              website.locationType === 'international' 
-                ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30'
-                : website.locationType === 'national'
-                ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-500/30'
-                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/30'
-            } backdrop-blur-sm`}>
-              {website.locationType === 'international' ? '🌍 International' : 
-               website.locationType === 'national' ? '🏠 National' : '🌐 Both'}
-            </Badge>
-          </div>
-          
-          <Button asChild className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl border-0 hover:scale-[1.02]">
+          <Button asChild className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl border-0 hover:scale-[1.02] group">
             <a href={website.url} target="_blank" rel="noopener noreferrer">
               <span>Explore Opportunities</span>
-              <ExternalLink className="ml-2 h-5 w-5" />
+              <ExternalLink className="ml-2 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
             </a>
           </Button>
         </div>
@@ -230,36 +229,11 @@ const JobSuggestions = () => {
       </div>
 
       <div className="container mx-auto py-12 px-4 relative z-10">
-        {/* Global Location Filter Switch */}
-        <section className="mb-16">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-6 p-6 bg-gradient-to-r from-gray-800/90 to-gray-900/90 rounded-3xl backdrop-blur-xl shadow-2xl border border-gray-700/50">
-              <div className="flex items-center gap-4">
-                <MapPin className="w-6 h-6 text-blue-400" />
-                <span className="text-white font-semibold text-lg">Location Filter:</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className={`text-sm font-medium transition-colors ${!showInternational ? 'text-green-400' : 'text-gray-400'}`}>
-                  🏠 National
-                </span>
-                <Switch
-                  checked={showInternational}
-                  onCheckedChange={setShowInternational}
-                  className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-green-500"
-                />
-                <span className={`text-sm font-medium transition-colors ${showInternational ? 'text-blue-400' : 'text-gray-400'}`}>
-                  🌍 International
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Enhanced Job Search Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
-              <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl shadow-lg animate-pulse">
                 <Briefcase className="w-10 h-10 text-white" />
               </div>
               🔍 Job Search Portals
@@ -267,7 +241,7 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filterWebsites(jobSearchWebsites).map((website, index) => (
+            {jobSearchWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
@@ -282,7 +256,7 @@ const JobSuggestions = () => {
         <section className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg animate-bounce">
                 <Users className="w-10 h-10 text-white" />
               </div>
               🎓 Internship Opportunities
@@ -290,7 +264,7 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filterWebsites(internshipWebsites).map((website, index) => (
+            {internshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
@@ -301,11 +275,11 @@ const JobSuggestions = () => {
           </div>
         </section>
 
-        {/* New Scholarship Section */}
+        {/* Scholarship Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
-              <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl shadow-lg animate-pulse">
                 <GraduationCap className="w-10 h-10 text-white" />
               </div>
               🎓 Scholarship Opportunities
@@ -313,7 +287,7 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filterWebsites(scholarshipWebsites).map((website, index) => (
+            {scholarshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 
@@ -328,7 +302,7 @@ const JobSuggestions = () => {
         <section className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
-              <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl shadow-lg animate-spin-slow">
                 <DollarSign className="w-10 h-10 text-white" />
               </div>
               💼 Freelancing Platforms
@@ -336,7 +310,7 @@ const JobSuggestions = () => {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">Build your independent career with global freelancing opportunities</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filterWebsites(freelancingWebsites).map((website, index) => (
+            {freelancingWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
                 website={website} 

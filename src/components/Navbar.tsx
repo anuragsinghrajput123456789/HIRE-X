@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -7,7 +6,7 @@ import {
   X, 
   FileText, 
   Search, 
-  Target, 
+  Globe, 
   Mail, 
   MessageCircle,
   Sparkles,
@@ -22,7 +21,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/generator', label: 'Generator', icon: FileText, description: 'Create Resume' },
     { path: '/analyzer', label: 'Analyzer', icon: Search, description: 'Analyze & Improve' },
-    { path: '/job-match', label: 'Job Match', icon: Target, description: 'Find Perfect Jobs' },
+    { path: '/job-match', label: 'Job Portals', icon: Globe, description: 'Find Perfect Jobs' },
     { path: '/cold-email', label: 'Cold Email', icon: Mail, description: 'Write Emails' },
     { path: '/chat', label: 'AI Chat', icon: MessageCircle, description: 'Career Assistant' }
   ];
