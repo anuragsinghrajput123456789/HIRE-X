@@ -1,9 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, MapPin, Sparkles } from 'lucide-react';
+import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, MapPin, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -100,6 +99,20 @@ const freelancingWebsites: Website[] = [
     description: "Flexible freelancing platform with workroom collaboration",
     features: ["Safe pay system", "Workroom tools", "Flexible agreements"],
     locationType: 'international'
+  },
+  {
+    name: "PeoplePerHour",
+    url: "https://www.peopleperhour.com",
+    description: "UK-based freelancing platform for creative and technical projects",
+    features: ["Hourly and fixed-price", "Workstream collaboration", "AI matching"],
+    locationType: 'international'
+  },
+  {
+    name: "SimplyHired",
+    url: "https://www.simplyhired.com/freelance-jobs",
+    description: "Freelance job aggregator with global opportunities",
+    features: ["Job alerts", "Salary estimates", "Company reviews"],
+    locationType: 'international'
   }
 ];
 
@@ -158,6 +171,34 @@ const jobSearchWebsites: Website[] = [
     url: "https://www.dice.com",
     description: "Technology-focused job board for IT professionals",
     features: ["Tech-specific", "Salary insights", "Skills matching"],
+    locationType: 'international'
+  },
+  {
+    name: "FlexJobs",
+    url: "https://www.flexjobs.com",
+    description: "Remote, part-time, and flexible job opportunities",
+    features: ["Remote work focus", "Flexible schedules", "Vetted opportunities"],
+    locationType: 'international'
+  },
+  {
+    name: "AngelList Talent",
+    url: "https://angel.co/jobs",
+    description: "Startup and tech company job opportunities",
+    features: ["Startup culture", "Equity information", "Direct contact"],
+    locationType: 'international'
+  },
+  {
+    name: "Times Jobs",
+    url: "https://www.timesjobs.com",
+    description: "Leading Indian job portal with diverse opportunities",
+    features: ["Indian companies", "Walk-in interviews", "Career resources"],
+    locationType: 'national'
+  },
+  {
+    name: "Wellfound",
+    url: "https://wellfound.com",
+    description: "Startup job platform connecting talent with growing companies",
+    features: ["Startup focus", "Company culture", "Growth opportunities"],
     locationType: 'international'
   }
 ];
@@ -218,13 +259,33 @@ const scholarshipWebsites: Website[] = [
     description: "German Academic Exchange Service scholarships",
     features: ["Study in Germany", "Research funding", "Language courses"],
     locationType: 'international'
+  },
+  {
+    name: "Chevening Scholarships",
+    url: "https://www.chevening.org",
+    description: "UK government's global scholarship programme",
+    features: ["UK studies", "Leadership development", "Global network"],
+    locationType: 'international'
+  },
+  {
+    name: "Fulbright Program",
+    url: "https://www.fulbrightonline.org",
+    description: "International educational exchange program",
+    features: ["Cultural exchange", "Research opportunities", "Global impact"],
+    locationType: 'international'
   }
 ];
 
 const JobSuggestions = () => {
+  const [showMoreJobs, setShowMoreJobs] = useState(false);
+  const [showMoreInternships, setShowMoreInternships] = useState(false);
+  const [showMoreScholarships, setShowMoreScholarships] = useState(false);
+  const [showMoreFreelancing, setShowMoreFreelancing] = useState(false);
+
+  const INITIAL_DISPLAY_COUNT = 6;
+
   const WebsiteCard = ({ website, icon: Icon, accentColor }: { website: Website, icon: any, accentColor: string }) => (
-    <Card className="group relative h-full flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-800/95 dark:via-gray-900/95 dark:to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 overflow-hidden">
-      {/* Animated background glow */}
+    <Card className="group h-full flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-800/95 dark:via-gray-900/95 dark:to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       <CardHeader className="pb-4 relative z-10 flex-shrink-0">
@@ -236,7 +297,6 @@ const JobSuggestions = () => {
             <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300 font-semibold truncate">{website.name}</span>
           </div>
           
-          {/* Enhanced location badge */}
           <div className="flex-shrink-0">
             {website.locationType === 'international' && (
               <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-300 border-blue-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform duration-300">
@@ -290,6 +350,27 @@ const JobSuggestions = () => {
     </Card>
   );
 
+  const ShowMoreButton = ({ isExpanded, onClick, count }: { isExpanded: boolean, onClick: () => void, count: number }) => (
+    <div className="col-span-full flex justify-center mt-8">
+      <Button
+        onClick={onClick}
+        className="bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 hover:from-purple-700 hover:via-blue-700 hover:to-pink-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-8 py-3 flex items-center gap-3 hover:scale-105"
+      >
+        {isExpanded ? (
+          <>
+            <ChevronUp className="w-5 h-5" />
+            Show Less
+          </>
+        ) : (
+          <>
+            <ChevronDown className="w-5 h-5 animate-bounce" />
+            Show More ({count - INITIAL_DISPLAY_COUNT} more)
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20 relative overflow-hidden">
       {/* Enhanced Background Elements */}
@@ -312,14 +393,23 @@ const JobSuggestions = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {jobSearchWebsites.map((website, index) => (
-              <WebsiteCard 
-                key={index} 
-                website={website} 
-                icon={Briefcase} 
-                accentColor="bg-gradient-to-r from-red-500 to-pink-500"
+            {jobSearchWebsites
+              .slice(0, showMoreJobs ? jobSearchWebsites.length : INITIAL_DISPLAY_COUNT)
+              .map((website, index) => (
+                <WebsiteCard 
+                  key={index} 
+                  website={website} 
+                  icon={Briefcase} 
+                  accentColor="bg-gradient-to-r from-red-500 to-pink-500"
+                />
+              ))}
+            {jobSearchWebsites.length > INITIAL_DISPLAY_COUNT && (
+              <ShowMoreButton
+                isExpanded={showMoreJobs}
+                onClick={() => setShowMoreJobs(!showMoreJobs)}
+                count={jobSearchWebsites.length}
               />
-            ))}
+            )}
           </div>
         </section>
 
@@ -335,14 +425,23 @@ const JobSuggestions = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {internshipWebsites.map((website, index) => (
-              <WebsiteCard 
-                key={index} 
-                website={website} 
-                icon={Users} 
-                accentColor="bg-gradient-to-r from-blue-500 to-purple-600"
+            {internshipWebsites
+              .slice(0, showMoreInternships ? internshipWebsites.length : INITIAL_DISPLAY_COUNT)
+              .map((website, index) => (
+                <WebsiteCard 
+                  key={index} 
+                  website={website} 
+                  icon={Users} 
+                  accentColor="bg-gradient-to-r from-blue-500 to-purple-600"
+                />
+              ))}
+            {internshipWebsites.length > INITIAL_DISPLAY_COUNT && (
+              <ShowMoreButton
+                isExpanded={showMoreInternships}
+                onClick={() => setShowMoreInternships(!showMoreInternships)}
+                count={internshipWebsites.length}
               />
-            ))}
+            )}
           </div>
         </section>
 
@@ -358,14 +457,23 @@ const JobSuggestions = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {scholarshipWebsites.map((website, index) => (
-              <WebsiteCard 
-                key={index} 
-                website={website} 
-                icon={GraduationCap} 
-                accentColor="bg-gradient-to-r from-yellow-500 to-orange-500"
+            {scholarshipWebsites
+              .slice(0, showMoreScholarships ? scholarshipWebsites.length : INITIAL_DISPLAY_COUNT)
+              .map((website, index) => (
+                <WebsiteCard 
+                  key={index} 
+                  website={website} 
+                  icon={GraduationCap} 
+                  accentColor="bg-gradient-to-r from-yellow-500 to-orange-500"
+                />
+              ))}
+            {scholarshipWebsites.length > INITIAL_DISPLAY_COUNT && (
+              <ShowMoreButton
+                isExpanded={showMoreScholarships}
+                onClick={() => setShowMoreScholarships(!showMoreScholarships)}
+                count={scholarshipWebsites.length}
               />
-            ))}
+            )}
           </div>
         </section>
 
@@ -381,14 +489,23 @@ const JobSuggestions = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Build your independent career with global freelancing opportunities</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {freelancingWebsites.map((website, index) => (
-              <WebsiteCard 
-                key={index} 
-                website={website} 
-                icon={DollarSign} 
-                accentColor="bg-gradient-to-r from-green-500 to-blue-500"
+            {freelancingWebsites
+              .slice(0, showMoreFreelancing ? freelancingWebsites.length : INITIAL_DISPLAY_COUNT)
+              .map((website, index) => (
+                <WebsiteCard 
+                  key={index} 
+                  website={website} 
+                  icon={DollarSign} 
+                  accentColor="bg-gradient-to-r from-green-500 to-blue-500"
+                />
+              ))}
+            {freelancingWebsites.length > INITIAL_DISPLAY_COUNT && (
+              <ShowMoreButton
+                isExpanded={showMoreFreelancing}
+                onClick={() => setShowMoreFreelancing(!showMoreFreelancing)}
+                count={freelancingWebsites.length}
               />
-            ))}
+            )}
           </div>
         </section>
       </div>
