@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, Home, Sparkles } from 'lucide-react';
+import { ExternalLink, Briefcase, Users, DollarSign, GraduationCap, Target, TrendingUp, Globe, Home, Sparkles, MapPin, Clock, Award } from 'lucide-react';
 
 interface Website {
   name: string;
@@ -40,6 +41,20 @@ const internshipWebsites: Website[] = [
     description: "Job search platform with company insights and internship opportunities",
     features: ["Company reviews", "Salary transparency", "Interview insights"],
     locationType: 'international'
+  },
+  {
+    name: "AngelList",
+    url: "https://angel.co/jobs",
+    description: "Startup internships and early-stage company opportunities",
+    features: ["Startup culture", "Equity options", "Direct founder contact"],
+    locationType: 'international'
+  },
+  {
+    name: "Forage",
+    url: "https://www.theforage.com",
+    description: "Virtual work experience programs with top companies",
+    features: ["Free programs", "Industry simulation", "Certificate completion"],
+    locationType: 'international'
   }
 ];
 
@@ -71,6 +86,20 @@ const freelancingWebsites: Website[] = [
     description: "Elite network of top 3% freelance talent",
     features: ["Rigorous screening", "Premium rates", "Direct client matching"],
     locationType: 'international'
+  },
+  {
+    name: "99designs",
+    url: "https://99designs.com",
+    description: "Creative freelancing platform for designers and creatives",
+    features: ["Design contests", "1-to-1 projects", "Brand packages"],
+    locationType: 'international'
+  },
+  {
+    name: "Guru",
+    url: "https://www.guru.com",
+    description: "Flexible freelancing platform with workroom collaboration",
+    features: ["Safe pay system", "Workroom tools", "Flexible agreements"],
+    locationType: 'international'
   }
 ];
 
@@ -101,6 +130,34 @@ const jobSearchWebsites: Website[] = [
     url: "https://www.monster.com",
     description: "Global employment website for job seekers and employers",
     features: ["Career advice", "Resume services", "Job alerts"],
+    locationType: 'international'
+  },
+  {
+    name: "ZipRecruiter",
+    url: "https://www.ziprecruiter.com",
+    description: "AI-powered job matching platform with instant notifications",
+    features: ["Smart matching", "Mobile alerts", "One-click apply"],
+    locationType: 'international'
+  },
+  {
+    name: "Shine.com",
+    url: "https://www.shine.com",
+    description: "India's premium job portal for professionals",
+    features: ["Premium jobs", "Career advice", "Skill assessments"],
+    locationType: 'national'
+  },
+  {
+    name: "CareerBuilder",
+    url: "https://www.careerbuilder.com",
+    description: "Comprehensive job search platform with career resources",
+    features: ["Resume builder", "Career tests", "Salary calculator"],
+    locationType: 'international'
+  },
+  {
+    name: "Dice",
+    url: "https://www.dice.com",
+    description: "Technology-focused job board for IT professionals",
+    features: ["Tech-specific", "Salary insights", "Skills matching"],
     locationType: 'international'
   }
 ];
@@ -147,40 +204,54 @@ const scholarshipWebsites: Website[] = [
     description: "Comprehensive scholarship portal for Indian students",
     features: ["College partnerships", "Easy application", "Expert guidance"],
     locationType: 'national'
+  },
+  {
+    name: "ScholarshipOwl",
+    url: "https://scholarshipowl.com",
+    description: "Automated scholarship application service",
+    features: ["Auto-apply feature", "Essay assistance", "Deadline tracking"],
+    locationType: 'international'
+  },
+  {
+    name: "DAAD Scholarships",
+    url: "https://www.daad.de/en/study-and-research-in-germany/scholarships/",
+    description: "German Academic Exchange Service scholarships",
+    features: ["Study in Germany", "Research funding", "Language courses"],
+    locationType: 'international'
   }
 ];
 
 const JobSuggestions = () => {
   const WebsiteCard = ({ website, icon: Icon, accentColor }: { website: Website, icon: any, accentColor: string }) => (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 relative overflow-hidden">
+    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-800/95 dark:via-gray-900/95 dark:to-gray-900/95 backdrop-blur-xl shadow-xl hover:shadow-purple-500/20 relative overflow-hidden">
       {/* Animated background glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       <CardHeader className="pb-4 relative z-10">
-        <CardTitle className="flex items-center gap-3 text-xl text-white">
+        <CardTitle className="flex items-center gap-3 text-xl text-gray-900 dark:text-white">
           <div className={`p-3 rounded-2xl ${accentColor} group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
-          <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text transition-all duration-300">{website.name}</span>
+          <span className="group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">{website.name}</span>
           
-          {/* Stylish location badge with icons and animations */}
+          {/* Enhanced location badge with icons and animations */}
           <div className="ml-auto flex items-center">
             {website.locationType === 'international' && (
-              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
+              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-600 dark:text-blue-300 border-blue-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
                 <Globe className="w-3 h-3 animate-spin-slow" />
                 <span className="text-xs font-semibold">International</span>
                 <Sparkles className="w-3 h-3 animate-pulse" />
               </Badge>
             )}
             {website.locationType === 'national' && (
-              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-300">
-                <Home className="w-3 h-3 animate-pulse" />
+              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 dark:text-green-300 border-green-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-300">
+                <MapPin className="w-3 h-3 animate-pulse" />
                 <span className="text-xs font-semibold">National</span>
                 <Target className="w-3 h-3 animate-ping" />
               </Badge>
             )}
             {website.locationType === 'both' && (
-              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
+              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-300 border-purple-500/30 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2 animate-pulse hover:scale-105 transition-transform duration-300">
                 <Globe className="w-3 h-3 animate-spin-slow" />
                 <span className="text-xs font-semibold">Global</span>
                 <Sparkles className="w-3 h-3 animate-bounce" />
@@ -190,18 +261,18 @@ const JobSuggestions = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5 relative z-10">
-        <CardDescription className="text-gray-300 leading-relaxed text-base">{website.description}</CardDescription>
+        <CardDescription className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">{website.description}</CardDescription>
         
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-400" />
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-green-500" />
               Key Features
             </h4>
-            <ul className="grid grid-cols-1 gap-2 text-sm text-gray-300">
+            <ul className="grid grid-cols-1 gap-2 text-sm text-gray-600 dark:text-gray-300">
               {website.features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mt-2 flex-shrink-0 animate-pulse"></div>
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-2 flex-shrink-0 animate-pulse"></div>
                   {feature}
                 </li>
               ))}
@@ -220,27 +291,27 @@ const JobSuggestions = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20 relative overflow-hidden">
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-60 right-10 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-float animate-delay-200"></div>
-        <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl animate-float animate-delay-500"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-60 right-10 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl animate-float animate-delay-200"></div>
+        <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-400/10 rounded-full blur-3xl animate-float animate-delay-500"></div>
       </div>
 
       <div className="container mx-auto py-12 px-4 relative z-10">
         {/* Enhanced Job Search Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
+            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl shadow-lg animate-pulse">
                 <Briefcase className="w-10 h-10 text-white" />
               </div>
               🔍 Job Search Portals
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Find your next career opportunity on these leading job search platforms</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {jobSearchWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -255,15 +326,15 @@ const JobSuggestions = () => {
         {/* Enhanced Internship Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
+            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg animate-bounce">
                 <Users className="w-10 h-10 text-white" />
               </div>
               🎓 Internship Opportunities
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Launch your career with amazing internship opportunities from top platforms</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {internshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -275,18 +346,18 @@ const JobSuggestions = () => {
           </div>
         </section>
 
-        {/* Scholarship Section */}
+        {/* Enhanced Scholarship Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
+            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl shadow-lg animate-pulse">
                 <GraduationCap className="w-10 h-10 text-white" />
               </div>
               🎓 Scholarship Opportunities
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Fund your education with scholarships from top platforms worldwide</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {scholarshipWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
@@ -301,15 +372,15 @@ const JobSuggestions = () => {
         {/* Enhanced Freelancing Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-white">
+            <h2 className="text-4xl font-bold mb-6 flex items-center justify-center gap-4 text-gray-900 dark:text-white">
               <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl shadow-lg animate-spin-slow">
                 <DollarSign className="w-10 h-10 text-white" />
               </div>
               💼 Freelancing Platforms
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Build your independent career with global freelancing opportunities</p>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Build your independent career with global freelancing opportunities</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {freelancingWebsites.map((website, index) => (
               <WebsiteCard 
                 key={index} 
