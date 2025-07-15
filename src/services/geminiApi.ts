@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ResumeData } from '../types/resumeTypes';
 
-const genAI = new GoogleGenerativeAI('AIzaSyAHI6dEYABoLBXht70PtS97_fPFruDipH8');
+const genAI = new GoogleGenerativeAI('AIzaSyBrVugq-g35-6OSMAL_YRmY8iq_j8uWfuE');
 
 export interface AnalysisResult {
   atsScore: number;

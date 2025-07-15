@@ -10,7 +10,7 @@ const Index = () => {
       {/* Hero Section */}
       <div className="text-center mb-16">
         <h1 className="text-6xl font-bold mb-6">
-          <span className="gradient-text">AI Resume Builder</span>
+          <span className="gradient-text">HIRE-X <br />AI Resume Builder</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
           Create ATS-optimized resumes, analyze existing ones, and get personalized job recommendations powered by AI
